@@ -4,6 +4,8 @@ on:
 
   # Build and deploy the image on pushes to master branch
   push:
+    paths-ignore:
+      - '**.md'
     branches: 
       - main
 
