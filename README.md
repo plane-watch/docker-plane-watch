@@ -1,6 +1,6 @@
 # planewatch/plane-watch
 
-[![Discord](https://img.shields.io/discord/207038656311984139)](https://discord.gg/QjKdHDFgkj)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/plane-watch/docker-plane-watch/Deploy%20to%20Docker%20Hub/main) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/planewatch/plane-watch/latest_amd64) [![Discord](https://img.shields.io/discord/207038656311984139)](https://discord.gg/QjKdHDFgkj) 
 
 Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with [mikenye/readsb-protobuf](https://hub.docker.com/r/mikenye/readsb-protobuf) or another BEAST provider. Builds and runs on x86, x86_64, arm32v6, arm32v7 & arm64v8.
 
