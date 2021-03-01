@@ -52,7 +52,6 @@ RUN set -x && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
-    # Deploy healthcheck framework
     # Deploy healthchecks framework
     git clone \
       --depth=1 \
