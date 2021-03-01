@@ -8,6 +8,8 @@ ENV BEASTPORT=30005 \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY rootfs/ /
+
 RUN set -x && \
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
@@ -72,8 +74,6 @@ RUN set -x && \
     echo "readsb $(readsb --version | cut -d ' ' -f 2)" >> /VERSIONS && \
     set +o pipefail && \
     echo "stunnel $(stunnel 2>&1 | grep '\[\.\] stunnel' | cut -d ' ' -f 3)" >> /VERSIONS
-
-COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
