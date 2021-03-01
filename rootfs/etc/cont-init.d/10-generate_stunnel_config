@@ -1,0 +1,21 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+{
+    if [[ -n "$DEBUG_LOGGING" ]]; then
+        : #pass
+    else
+        echo "debug = 4"
+    fi
+    echo "foreground = yes"
+    echo "syslog = no"
+    echo "[planewatch-tunnel]"
+    echo "client = yes"
+    echo "sni = ${API_KEY}"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_PORT}"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_PORT}"
+    echo "CApath = /etc/ssl/certs"
+    echo "verifyChain = yes"
+    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
+    echo "TIMEOUTconnect = 10"
+} > /etc/stunnel.conf
