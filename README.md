@@ -1,4 +1,4 @@
-# plane-watch/plane-watch
+# planewatch/plane-watch
 
 [![Discord](https://img.shields.io/discord/207038656311984139)](https://discord.gg/QjKdHDFgkj)
 
@@ -45,7 +45,7 @@ docker run \
  -e API_KEY=YOUR_API_KEY \
  --tmpfs=/run:exec,size=64M \
  --tmpfs=/var/log \
- plane-watch/plane-watch
+ planewatch/plane-watch
 ```
 
 Where:
@@ -67,7 +67,7 @@ version: '3.8'
 
 services:
   planewatch:
-    image: plane-watch/plane-watch
+    image: planewatch/plane-watch
     tty: true
     container_name: planewatch
     restart: always
