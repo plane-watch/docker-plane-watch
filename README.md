@@ -74,7 +74,7 @@ services:
     environment:
       - BEASTHOST=YOUR_BEASTHOST
       - TZ=YOUR_TIMEZONE
-      - UUID=YOUR_API_KEY
+      - API_KEY=YOUR_API_KEY
     tmpfs:
       - /run:exec,size=64M
       - /var/log
