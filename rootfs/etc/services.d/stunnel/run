@@ -3,4 +3,4 @@
 
 # shellcheck disable=SC2016
 stunnel /etc/stunnel.conf \
-    2>&1 | stdbuf -o0 awk '{print "[beast_tunnel] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
+    2>&1 | stdbuf -o0 awk '{print "[stunnel] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
