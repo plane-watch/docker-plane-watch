@@ -18,4 +18,4 @@
     echo "verifyChain = yes"
     echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
     echo "TIMEOUTconnect = 10"
-} > /etc/stunnel.conf
+} > /etc/stunnel_beast.conf
