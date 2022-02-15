@@ -3,7 +3,7 @@
 
 set -eo pipefail
 
-if [[ -n "${ACARS_HOST}" ]]; then
+# if [[ -n "${ACARS_HOST}" ]]; then
 
     python3 /opt/acars_router/acars_router.py \
         --send-tcp-acars "127.0.0.1:55550" \
@@ -12,6 +12,6 @@ if [[ -n "${ACARS_HOST}" ]]; then
         | stdbuf -o0 sed --unbuffered '/^$/d' \
         | stdbuf -o0 awk '{print "[acars_router] " $0}'
 
-else
-    sleep 86500
-fi
+# else
+#     sleep 86500
+# fi
