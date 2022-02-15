@@ -8,6 +8,8 @@ set -eo pipefail
     python3 /opt/acars_router/acars_router.py \
         --send-tcp-acars "127.0.0.1:55550" \
         --send-tcp-vdlm2 "127.0.0.1:55555" \
+        --receive-tcp-acars "${ACARS_HOST}:${ACARS_PORT:-5550}" \
+        --receive-tcp-vdlm2 "${VDLM2_HOST}:${VDLM2_PORT:-5555}" \
         2>&1 \
         | stdbuf -o0 sed --unbuffered '/^$/d' \
         | stdbuf -o0 awk '{print "[acars_router] " $0}'
