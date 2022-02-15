@@ -9,13 +9,41 @@
     fi
     echo "foreground = yes"
     echo "syslog = no"
-    echo "[planewatch-tunnel]"
+
+    # Configure stunnel for BEAST traffic
+    echo "[planewatch-beast-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
-    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_PORT}"
-    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_PORT}"
+    echo "accept =  127.0.0.1:50005"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_BEAST_PORT}"
     echo "CApath = /etc/ssl/certs"
     echo "verifyChain = yes"
     echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
     echo "TIMEOUTconnect = 10"
-} > /etc/stunnel_beast.conf
+    echo ""
+
+    # Configure stunnel for ACARS traffic
+    echo "[planewatch-acars-tunnel]"
+    echo "client = yes"
+    echo "sni = ${API_KEY}"
+    echo "accept =  127.0.0.1:55550"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_ACARS_PORT}"
+    echo "CApath = /etc/ssl/certs"
+    echo "verifyChain = yes"
+    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
+    echo "TIMEOUTconnect = 10"
+    echo ""
+
+    # Configure stunnel for VDLM2 traffic
+    echo "[planewatch-vdlm2-tunnel]"
+    echo "client = yes"
+    echo "sni = ${API_KEY}"
+    echo "accept =  127.0.0.1:55555"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_VDLM2_PORT}"
+    echo "CApath = /etc/ssl/certs"
+    echo "verifyChain = yes"
+    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
+    echo "TIMEOUTconnect = 10"
+    echo ""
+
+} > /etc/stunnel.conf
