@@ -1,8 +1,10 @@
-FROM debian:stable-slim
+FROM python:3-slim
 
 ENV BEASTPORT=30005 \
     PW_FEED_DESTINATION_HOSTNAME=feed.push.plane.watch \
-    PW_FEED_DESTINATION_PORT=12345 \
+    PW_FEED_DESTINATION_BEAST_PORT=12345 \
+    PW_FEED_DESTINATION_ACARS_PORT=5550 \
+    PW_FEED_DESTINATION_VDLM2_PORT=5555 \
     REDUCE_INTERVAL="0.5" \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 
 
@@ -42,18 +44,21 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
-    # Build readsb.
-    git clone https://github.com/Mictronics/readsb-protobuf.git "/src/readsb-protobuf" && \
+    # Build readsb
+    git clone --depth 1 --single-branch --branch dev https://github.com/Mictronics/readsb-protobuf.git "/src/readsb-protobuf" && \
     pushd "/src/readsb-protobuf" && \
-    BRANCH_READSB=$(git tag --sort="creatordate" | tail -1) && \
     git checkout "$BRANCH_READSB" && \
     make BLADERF=no RTLSDR=no PLUTOSDR=no && \
     popd && \
     # Install readsb - Copy readsb executables to /usr/local/bin/.
     find "/src/readsb-protobuf" -maxdepth 1 -executable -type f -exec cp -v {} /usr/local/bin/ \; && \
+    # Deploy acars_router
+    git clone --depth 1 --single-branch --branch dev https://github.com/sdr-enthusiasts/acars_router.git "/src/acars_router" && \
+    cp -v /src/acars_router/acars_router /opt/ && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
+    # Install 
     # Deploy healthchecks framework
     git clone \
       --depth=1 \
