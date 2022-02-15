@@ -47,7 +47,6 @@ RUN set -x && \
     # Build readsb
     git clone --depth 1 --single-branch --branch dev https://github.com/Mictronics/readsb-protobuf.git "/src/readsb-protobuf" && \
     pushd "/src/readsb-protobuf" && \
-    git checkout "$BRANCH_READSB" && \
     make BLADERF=no RTLSDR=no PLUTOSDR=no && \
     popd && \
     # Install readsb - Copy readsb executables to /usr/local/bin/.
