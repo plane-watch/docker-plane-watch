@@ -23,6 +23,13 @@ if [[ -n "${VDLM2_HOST}" ]]; then
     START_ACARS_ROUTER="true"
 fi
 
+# If debug logging requested, enable it
+if [[ -n "$DEBUG_LOGGING" ]]; then
+    : #pass
+else
+    AR_CMD+=("-v")
+fi
+
 # If ACARS or VDLM2 are enabled, then start the router
 if [[ "${START_ACARS_ROUTER,,}" == "true" ]]; then
 
