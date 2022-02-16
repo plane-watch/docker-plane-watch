@@ -3,18 +3,33 @@
 
 set -eo pipefail
 
-# if [[ -n "${ACARS_HOST}" ]]; then
+# Set up variable to determine if acars_router should be started
+START_ACARS_ROUTER="false"
 
-    python3 /opt/acars_router/acars_router.py \
-        --send-tcp-acars "127.0.0.1:55550" \
-        --send-tcp-vdlm2 "127.0.0.1:55555" \
-        --receive-tcp-acars "${ACARS_HOST}:${ACARS_PORT:-5550}" \
-        --receive-tcp-vdlm2 "${VDLM2_HOST}:${VDLM2_PORT:-5555}" \
-        -vv \
+# Set up array to hold command line args for acars_router
+AR_CMD=()
+
+# If user has specified an ACARS_HOST, attempt to pull ACARS and feed into stunnel
+if [[ -n "${ACARS_HOST}" ]]; then
+    AR_CMD+=("--send-tcp-acars" "127.0.0.1:55550")
+    AR_CMD+=("--receive-tcp-acars" "${ACARS_HOST}:${ACARS_PORT:-5550}")
+    START_ACARS_ROUTER="true"
+fi
+
+# If user has specified an VDLM2_HOST, attempt to pull ACARS and feed into stunnel
+if [[ -n "${VDLM2_HOST}" ]]; then
+    AR_CMD+=("--send-tcp-vdlm2" "127.0.0.1:55555")
+    AR_CMD+=("--receive-tcp-vdlm2" "${VDLM2_HOST}:${VDLM2_PORT:-5550}")
+    START_ACARS_ROUTER="true"
+fi
+
+# If ACARS or VDLM2 are enabled, then start the router
+if [[ "${START_ACARS_ROUTER,,}" == "true" ]]; then
+
+    python3 /opt/acars_router/acars_router.py "${AR_CMD[@]}" $AR_EXTRA_ARGS \
         2>&1 \
-        | stdbuf -o0 sed --unbuffered '/^$/d' \
         | stdbuf -o0 awk '{print "[acars_router] " $0}'
 
-# else
-#     sleep 86500
-# fi
+else
+    sleep 86500
+fi
