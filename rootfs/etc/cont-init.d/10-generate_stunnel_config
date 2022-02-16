@@ -1,6 +1,10 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# ensure config directory exists
+mkdir -p /etc/stunnel
+
+# Configure stunnel for BEAST traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
         : #pass
@@ -9,8 +13,7 @@
     fi
     echo "foreground = yes"
     echo "syslog = no"
-
-    # Configure stunnel for BEAST traffic
+    echo ""
     echo "[planewatch-beast-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
@@ -21,8 +24,18 @@
     echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
     echo "TIMEOUTconnect = 10"
     echo ""
+} > /etc/stunnel/stunnel_beast.conf
 
-    # Configure stunnel for ACARS traffic
+# Configure stunnel for ACARS traffic
+{
+    if [[ -n "$DEBUG_LOGGING" ]]; then
+        : #pass
+    else
+        echo "debug = 4"
+    fi
+    echo "foreground = yes"
+    echo "syslog = no"
+    echo ""
     echo "[planewatch-acars-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
@@ -33,8 +46,18 @@
     echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
     echo "TIMEOUTconnect = 10"
     echo ""
+} > /etc/stunnel/stunnel_acars.conf
 
-    # Configure stunnel for VDLM2 traffic
+# Configure stunnel for VDLM2 traffic
+{
+    if [[ -n "$DEBUG_LOGGING" ]]; then
+        : #pass
+    else
+        echo "debug = 4"
+    fi
+    echo "foreground = yes"
+    echo "syslog = no"
+    echo ""
     echo "[planewatch-vdlm2-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
@@ -45,5 +68,4 @@
     echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
     echo "TIMEOUTconnect = 10"
     echo ""
-
-} > /etc/stunnel.conf
+} > /etc/stunnel/stunnel_vdlm2.conf
