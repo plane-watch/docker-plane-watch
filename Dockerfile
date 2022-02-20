@@ -53,6 +53,8 @@ RUN set -x && \
     find "/src/readsb-protobuf" -maxdepth 1 -executable -type f -exec cp -v {} /usr/local/bin/ \; && \
     # Deploy acars_router
     git clone --depth 1 --single-branch --branch main https://github.com/sdr-enthusiasts/acars_router.git "/src/acars_router" && \
+    python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir --requirement /src/acars_router/acars_router/requirements.txt && \
     cp -Rv /src/acars_router/acars_router /opt/ && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
