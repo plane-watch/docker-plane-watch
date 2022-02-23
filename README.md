@@ -4,9 +4,9 @@
 
 Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with [mikenye/readsb-protobuf](https://hub.docker.com/r/mikenye/readsb-protobuf) or another BEAST provider. Builds and runs on x86, x86_64, arm32v6, arm32v7 & arm64v8.
 
-The container pulls ADS-B information from a BEAST provider and sends data to [plane.watch](https://plane.watch/).
+The container pulls ADS-B data from a BEAST provider (and optionally ACARS/VDLM2 data from appropriate sources) and sends data to [plane.watch](https://plane.watch/).
 
-[plane.watch](https://plane.watch/) is a small group of friends and aviation enthusiasts who operate an ADS-B data collection and display service for the benefit of the general public. While we are primarily based in Australia, we welcome data contributions from all over the world. We are a non-commercial entity - no data is sold or filtered/blocked.
+[plane.watch](https://plane.watch/) is a small group of friends and aviation enthusiasts who operate an ADS-B, ACARS and VDLM2 data collection and display service for the benefit of the general public. While we are primarily based in Australia, we welcome data contributions from all over the world. We are a non-commercial entity - no data is sold or filtered/blocked.
 
 For more information, please [join our Discord](https://discord.gg/QjKdHDFgkj) and say g'day.
 
