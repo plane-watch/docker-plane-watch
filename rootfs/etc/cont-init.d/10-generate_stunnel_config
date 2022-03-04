@@ -7,7 +7,7 @@ mkdir -p /etc/stunnel
 # Configure stunnel for BEAST traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
-        : #pass
+        echo "debug = 3"
     else
         echo "debug = 4"
     fi
@@ -30,7 +30,7 @@ mkdir -p /etc/stunnel
 # Configure stunnel for ACARS traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
-        : #pass
+        echo "debug = 3"
     else
         echo "debug = 4"
     fi
@@ -53,7 +53,7 @@ mkdir -p /etc/stunnel
 # Configure stunnel for VDLM2 traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
-        : #pass
+        echo "debug = 3"
     else
         echo "debug = 4"
     fi
@@ -76,7 +76,7 @@ mkdir -p /etc/stunnel
 # Configure stunnel for mlat-results traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
-        : #pass
+        echo "debug = 3"
     else
         echo "debug = 4"
     fi
@@ -99,7 +99,7 @@ mkdir -p /etc/stunnel
 # Configure stunnel for mlat-server traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then
-        : #pass
+        echo "debug = 3"
     else
         echo "debug = 4"
     fi
