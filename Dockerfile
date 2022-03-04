@@ -53,6 +53,13 @@ RUN set -x && \
     popd && \
     # Install readsb - Copy readsb executables to /usr/local/bin/.
     find "/src/readsb-protobuf" -maxdepth 1 -executable -type f -exec cp -v {} /usr/local/bin/ \; && \
+    # mlat-client
+    git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
+    pushd /src/mlat-client && \
+    ./setup.py build && \
+    ./setup.py install && \
+    cp -v ./mlat-client /usr/local/bin/mlat-client && \
+    popd && \
     # Deploy acars_router
     git clone --depth 1 --single-branch --branch main https://github.com/sdr-enthusiasts/acars_router.git "/src/acars_router" && \
     python3 -m pip install --no-cache-dir --upgrade pip && \
