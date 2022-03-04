@@ -13,6 +13,7 @@ mkdir -p /etc/stunnel
     fi
     echo "foreground = yes"
     echo "syslog = no"
+    echo "pid = /var/run/stunnel_beast.pid"
     echo ""
     echo "[planewatch-beast-tunnel]"
     echo "client = yes"
@@ -35,6 +36,7 @@ mkdir -p /etc/stunnel
     fi
     echo "foreground = yes"
     echo "syslog = no"
+    echo "pid = /var/run/stunnel_acars.pid"
     echo ""
     echo "[planewatch-acars-tunnel]"
     echo "client = yes"
@@ -57,6 +59,7 @@ mkdir -p /etc/stunnel
     fi
     echo "foreground = yes"
     echo "syslog = no"
+    echo "pid = /var/run/stunnel_vdlm2.pid"
     echo ""
     echo "[planewatch-vdlm2-tunnel]"
     echo "client = yes"
@@ -79,6 +82,7 @@ mkdir -p /etc/stunnel
     fi
     echo "foreground = yes"
     echo "syslog = no"
+    echo "pid = /var/run/stunnel_mlat_results.pid"
     echo ""
     echo "[planewatch-mlat-results-tunnel]"
     echo "client = yes"
@@ -101,6 +105,7 @@ mkdir -p /etc/stunnel
     fi
     echo "foreground = yes"
     echo "syslog = no"
+    echo "pid = /var/run/stunnel_mlat_server.pid"
     echo ""
     echo "[planewatch-mlat-server-tunnel]"
     echo "client = yes"
