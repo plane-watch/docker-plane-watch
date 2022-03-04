@@ -14,10 +14,10 @@ READSB_CMD+=(--net-connector "${BEASTHOST}","${BEASTPORT}",beast_in)
 if [[ -n "${BEAST_REDUCE_INTERVAL}" ]]; then
   # Send diet beastreduce
   READSB_CMD+=(--net-beast-reduce-interval "${BEAST_REDUCE_INTERVAL}")
-  READSB_CMD+=(--net-connector "127.0.0.1,50005,beast_reduce_out")
+  READSB_CMD+=(--net-connector "127.0.0.1,${PW_FEED_DESTINATION_BEAST_PORT},beast_reduce_out")
 else
   # Otherwise, send full fat beast
-  READSB_CMD+=(--net-connector "127.0.0.1,50005,beast_out"
+  READSB_CMD+=(--net-connector "127.0.0.1,${PW_FEED_DESTINATION_BEAST_PORT},beast_out"
 fi
 
 if [[ -n "${BEASTHOST}" ]]; then

@@ -1,0 +1,21 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# If mlat enabled...
+if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
+
+    # Launch mlat-client
+    /usr/local/bin/mlat-client \
+        --input-type "$MLAT_INPUT_TYPE" \
+        --input-connect "${BEASTHOST}":"${BEASTPORT}" \
+        --lat "$LAT" \
+        --lon "$LON" \
+        --alt "${ALT}ft" \
+        --results "beast,connect,127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}" \
+        --server "127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}" \
+      2>&1 | stdbuf -o0 awk '{print "[mlat-client] " $0}'
+
+# If not enabled, sleep forever
+else
+    sleep 86400
+fi

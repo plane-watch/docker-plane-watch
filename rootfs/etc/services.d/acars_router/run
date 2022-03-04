@@ -11,14 +11,14 @@ AR_CMD=()
 
 # If user has specified an ACARS_HOST, attempt to pull ACARS and feed into stunnel
 if [[ -n "${ACARS_HOST}" ]]; then
-    AR_CMD+=("--send-tcp-acars" "127.0.0.1:55550")
+    AR_CMD+=("--send-tcp-acars" "127.0.0.1:${PW_FEED_DESTINATION_ACARS_PORT}")
     AR_CMD+=("--receive-tcp-acars" "${ACARS_HOST}:${ACARS_PORT:-5550}")
     START_ACARS_ROUTER="true"
 fi
 
 # If user has specified an VDLM2_HOST, attempt to pull ACARS and feed into stunnel
 if [[ -n "${VDLM2_HOST}" ]]; then
-    AR_CMD+=("--send-tcp-vdlm2" "127.0.0.1:55555")
+    AR_CMD+=("--send-tcp-vdlm2" "127.0.0.1:${PW_FEED_DESTINATION_VDLM2_PORT}")
     AR_CMD+=("--receive-tcp-vdlm2" "${VDLM2_HOST}:${VDLM2_PORT:-5550}")
     START_ACARS_ROUTER="true"
 fi
