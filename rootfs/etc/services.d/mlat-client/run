@@ -7,6 +7,9 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
     # Make sure we have the needed env vars
     if [[ -n "$LAT" ]] && [[ -n "$LONG" ]] && [[ -n "$ALT" ]]; then
 
+        # give the tunnel some time to come up
+        sleep 5
+
         # Launch mlat-client
         /usr/local/bin/mlat-client \
             --input-type "$MLAT_INPUT_TYPE" \
@@ -16,9 +19,8 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
             --alt "${ALT}" \
             --results "beast,connect,127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}" \
             --server "127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}" \
+            --user "${API_KEY}" \
         2>&1 | stdbuf -o0 awk '{print "[mlat-client] " $0}'
-
-        sleep 5
 
     else
 
