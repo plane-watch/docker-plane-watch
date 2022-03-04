@@ -17,7 +17,7 @@ if [[ -n "${BEAST_REDUCE_INTERVAL}" ]]; then
   READSB_CMD+=(--net-connector "127.0.0.1,${PW_FEED_DESTINATION_BEAST_PORT},beast_reduce_out")
 else
   # Otherwise, send full fat beast
-  READSB_CMD+=(--net-connector "127.0.0.1,${PW_FEED_DESTINATION_BEAST_PORT},beast_out"
+  READSB_CMD+=(--net-connector "127.0.0.1,${PW_FEED_DESTINATION_BEAST_PORT},beast_out")
 fi
 
 if [[ -n "${BEASTHOST}" ]]; then
