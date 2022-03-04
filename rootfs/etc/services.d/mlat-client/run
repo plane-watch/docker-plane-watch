@@ -12,8 +12,8 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
             --input-type "$MLAT_INPUT_TYPE" \
             --input-connect "${BEASTHOST}":"${BEASTPORT}" \
             --lat "$LAT" \
-            --lon "$LON" \
-            --alt "${ALT}ft" \
+            --lon "$LONG" \
+            --alt "${ALT}" \
             --results "beast,connect,127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}" \
             --server "127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}" \
         2>&1 | stdbuf -o0 awk '{print "[mlat-client] " $0}'
