@@ -23,7 +23,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
             --user "${API_KEY}" \
         2>&1 \
         | stdbuf -o0 sed --unbuffered '/^$/d' \
-        | grep -v '         ' \
+        | stdbuf -o0 sed --unbuffered '/^         .*/d' \
         | stdbuf -o0 awk '{print "[mlat-client] " $0}'
 
     else
