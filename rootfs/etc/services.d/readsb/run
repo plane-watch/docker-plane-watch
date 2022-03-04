@@ -1,17 +1,28 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# Set readsb binary
+READSB_BIN="/usr/local/bin/readsb"
+
+# Common arguments
+READSB_CMD=(--net --net-only --quiet --net-heartbeat 60 --net-ro-size 1280)
+
+# Connect to beast host
+READSB_CMD+=(--net-connector "${BEASTHOST}","${BEASTPORT}",beast_in)
+
+# If the user wants to send beastreduce...
+if [[ -n "${BEAST_REDUCE_INTERVAL}" ]]; then
+  # Send diet beastreduce
+  READSB_CMD+=(--net-beast-reduce-interval "${BEAST_REDUCE_INTERVAL}")
+  READSB_CMD+=(--net-connector "127.0.0.1,50005,beast_reduce_out")
+else
+  # Otherwise, send full fat beast
+  READSB_CMD+=(--net-connector "127.0.0.1,50005,beast_out"
+fi
+
 if [[ -n "${BEASTHOST}" ]]; then
   # shellcheck disable=SC2016
-  /usr/local/bin/readsb \
-    --net \
-    --net-only \
-    --quiet \
-    --net-heartbeat 60 \
-    --net-ro-size 1280 \
-    --net-beast-reduce-interval "${REDUCE_INTERVAL}" \
-    --net-connector "127.0.0.1,50005,beast_reduce_out" \
-    --net-connector "${BEASTHOST}","${BEASTPORT}",beast_in \
+  "${READSB_BIN}" "${READSB_CMD[@]}" \
     2>&1 | stdbuf -o0 sed --unbuffered '/^$/d' | stdbuf -o0 awk '{print "[beast_router] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " $0}'
     
     # stdbuf -o0 sed --unbuffered '/^$/d'  --  (remove blank lines from output)
