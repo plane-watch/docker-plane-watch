@@ -207,6 +207,9 @@ There are a series of available environment variables:
 | `API_KEY` | Required. Your plane.watch API Key | |
 | `BEASTHOST` | Required. IP, hostname or container name of a Mode-S/BEAST provider (readsb/dump1090) | |
 | `BEASTPORT` | Optional. TCP port number of Mode-S/BEAST provider (readsb/dump1090) | `30005` |
+| `LAT` | Required for MLAT | Latitude of receiver antenna | |
+| `LONG` | Required for MLAT | Longitude of receiver antenna | |
+| `ALT` | Required for MLAT | Altitude of receiver antenna. Suffixed with `ft` or `m`. | |
 | `BEAST_REDUCE_INTERVAL` | Optional. For low bandwidth. If set, only send position updates every `BEAST_REDUCE_INTERVAL` seconds. | |
 | `ACARS_HOST` | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router) | |
 | `ACARS_PORT` | Optional. TCP port number of TCP ACARS source (eg: acars_router) | `15550` |
