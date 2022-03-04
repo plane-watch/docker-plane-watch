@@ -37,15 +37,18 @@ Our feeder container can be deployed with `docker run` as follows:
 
 ```shell
 docker run \
- -d \
- --rm \
- --name planewatch \
- -e TZ=YOUR_TIMEZONE \
- -e BEASTHOST=YOUR_BEASTHOST \
- -e API_KEY=YOUR_API_KEY \
- --tmpfs=/run:exec,size=64M \
- --tmpfs=/var/log \
- planewatch/plane-watch:latest
+  -d \
+  --rm \
+  --name planewatch \
+  -e TZ=YOUR_TIMEZONE \
+  -e BEASTHOST=YOUR_BEASTHOST \
+  -e API_KEY=YOUR_API_KEY \
+  -e LAT=YOUR_LATITUDE \
+  -e LONG=YOUR_LONGITUDE \
+  -e ALT=YOUR_ALTITUDE \
+  --tmpfs=/run:exec,size=64M \
+  --tmpfs=/var/log \
+  planewatch/plane-watch:latest
 ```
 
 Where:
@@ -53,6 +56,9 @@ Where:
 * `YOUR_TIMEZONE` is your timezone in ["TZ database name" format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) (eg: `Australia/Perth`)
 * `YOUR_BEASTHOST` is the hostname, IP address or container name of a beast protocol provider (eg: `piaware`)
 * `YOUR_API_KEY` is your plane.watch feeder API Key
+* `YOUR_LATITUDE` is the latitude of your antenna (xx.xxxxx)
+* `YOUR_LONGITUDE` is the longitude of your antenna (xx.xxxxx)
+* `YOUR_ALTITUDE` is the your antenna altitude, and should be suffixed with either `m` or `ft`. If no suffix, will default to `m`.
 
 You can test to ensure your container is seeing ADS-B data by running:
 
@@ -75,6 +81,9 @@ services:
       - BEASTHOST=YOUR_BEASTHOST
       - TZ=YOUR_TIMEZONE
       - API_KEY=YOUR_API_KEY
+      - LAT=YOUR_LATITUDE
+      - LONG=YOUR_LONGITUDE
+      - ALT=YOUR_ALTITUDE
     tmpfs:
       - /run:exec,size=64M
       - /var/log
@@ -85,6 +94,9 @@ Where:
 * `YOUR_TIMEZONE` is your timezone in ["TZ database name" format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) (eg: `Australia/Perth`)
 * `YOUR_BEASTHOST` is the hostname, IP address or container name of a beast protocol provider (eg: `piaware`)
 * `YOUR_API_KEY` is your plane.watch feeder API Key
+* `YOUR_LATITUDE` is the latitude of your antenna (xx.xxxxx)
+* `YOUR_LONGITUDE` is the longitude of your antenna (xx.xxxxx)
+* `YOUR_ALTITUDE` is the your antenna altitude, and should be suffixed with either `m` or `ft`. If no suffix, will default to `m`.
 
 You can test to ensure your container is seeing ADS-B data by running:
 
@@ -169,6 +181,9 @@ Here is an example configuration:
       - VDLM2_HOST=acars_router
       - TZ=YOUR_TIMEZONE
       - API_KEY=YOUR_API_KEY
+      - LAT=YOUR_LATITUDE
+      - LONG=YOUR_LONGITUDE
+      - ALT=YOUR_ALTITUDE
     tmpfs:
       - /run:exec,size=64M
       - /var/log
@@ -184,6 +199,9 @@ Where:
 * `VDLM2_SERIAL` the serial of your VDLM2 SDR
 * `YOUR_FREQUENCIES` the ACARS/VDLM2 frequencies
 * `YOUR_GAIN` the ACARS/VDLM2 gain
+* `YOUR_LATITUDE` is the latitude of your antenna (xx.xxxxx)
+* `YOUR_LONGITUDE` is the longitude of your antenna (xx.xxxxx)
+* `YOUR_ALTITUDE` is the your antenna altitude, and should be suffixed with either `m` or `ft`. If no suffix, will default to `m`.
 
 For more information on ACARS/VDLM2, please see:
 
@@ -196,19 +214,21 @@ For more information on ACARS/VDLM2, please see:
 
 There are a series of available environment variables:
 
-| Environment Variable           | Purpose                                                                               | Default                 |
-| ------------------------------ | ------------------------------------------------------------------------------------- | ----------------------- |
-| `API_KEY`                      | Required. Your plane.watch API Key                                                    |                         |
-| `BEASTHOST`                    | Required. IP, hostname or container name of a Mode-S/BEAST provider (readsb/dump1090) |                         |
-| `BEASTPORT`                    | Optional. TCP port number of Mode-S/BEAST provider (readsb/dump1090)                  | `30005`                 |
-| `ACARS_HOST`                   | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router)     |                         |
-| `ACARS_PORT`                   | Optional. TCP port number of TCP ACARS source (eg: acars_router)                      | `15550`                 |
-| `VDLM2_HOST`                   | Optional. IP, hostname or container name of a TCP VDLM2 source (eg: acars_router)     |                         |
-| `VDLM2_PORT`                   | Optional. TCP port number of TCP VDLM2 source (eg: acars_router)                      | `15555`                 |
-| `TZ`                           | Optional. Your local timezone                                                         | `GMT`                   |
-| `REDUCE_INTERVAL`              | Optional. How often beast data is transmitted for each tracked aircraft.              | `0.5`                   |
-| `PW_FEED_DESTINATION_HOSTNAME` | Optional. Allows changing the hostname that ADS-B data is fed to.                     | `feed.push.plane.watch` |
-| `PW_FEED_DESTINATION_PORT`     | Optional. Allows changing the TCP port that ADS-B data is fed to.                     | [`12345`](https://www.youtube.com/watch?v=a6iW-8xPw3k) |
+| Environment Variable | Purpose | Default |
+| --- | --- | --- |
+| `API_KEY` | Required. Your plane.watch API Key | |
+| `BEASTHOST` | Required. IP, hostname or container name of a Mode-S/BEAST provider (readsb/dump1090) | |
+| `BEASTPORT` | Optional. TCP port number of Mode-S/BEAST provider (readsb/dump1090) | `30005` |
+| `ACARS_HOST` | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router) | |
+| `ACARS_PORT` | Optional. TCP port number of TCP ACARS source (eg: acars_router) | `15550` |
+| `VDLM2_HOST` | Optional. IP, hostname or container name of a TCP VDLM2 source (eg: acars_router) | |
+| `VDLM2_PORT` | Optional. TCP port number of TCP VDLM2 source (eg: acars_router) | `15555` |
+| `LAT` | Required for MLAT | Latitude of receiver antenna | |
+| `LONG` | Required for MLAT | Longitude of receiver antenna | |
+| `ALT` | Required for MLAT | Altitude of receiver antenna. Suffixed with `ft` or `m`. | |
+| `BEAST_REDUCE_INTERVAL` | Optional. For reduced bandwidth. If set, only send position updates every `BEAST_REDUCE_INTERVAL` seconds. | |
+| `ENABLE_MLAT` | Optional. Set to `false` to disable MLAT. | `true` |
+| `TZ` | Optional. Your local timezone | `GMT` |
 
 ## Ports
 
