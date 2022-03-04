@@ -17,7 +17,7 @@ mkdir -p /etc/stunnel
     echo "[planewatch-beast-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
-    echo "accept =  127.0.0.1:50005"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_BEAST_PORT}"
     echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_BEAST_PORT}"
     echo "CApath = /etc/ssl/certs"
     echo "verifyChain = yes"
@@ -39,7 +39,7 @@ mkdir -p /etc/stunnel
     echo "[planewatch-acars-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
-    echo "accept =  127.0.0.1:55550"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_ACARS_PORT}"
     echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_ACARS_PORT}"
     echo "CApath = /etc/ssl/certs"
     echo "verifyChain = yes"
@@ -61,7 +61,7 @@ mkdir -p /etc/stunnel
     echo "[planewatch-vdlm2-tunnel]"
     echo "client = yes"
     echo "sni = ${API_KEY}"
-    echo "accept =  127.0.0.1:55555"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_VDLM2_PORT}"
     echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_VDLM2_PORT}"
     echo "CApath = /etc/ssl/certs"
     echo "verifyChain = yes"
@@ -69,3 +69,47 @@ mkdir -p /etc/stunnel
     echo "TIMEOUTconnect = 10"
     echo ""
 } > /etc/stunnel/stunnel_vdlm2.conf
+
+# Configure stunnel for mlat-results traffic
+{
+    if [[ -n "$DEBUG_LOGGING" ]]; then
+        : #pass
+    else
+        echo "debug = 4"
+    fi
+    echo "foreground = yes"
+    echo "syslog = no"
+    echo ""
+    echo "[planewatch-mlat-results-tunnel]"
+    echo "client = yes"
+    echo "sni = ${API_KEY}"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}"
+    echo "CApath = /etc/ssl/certs"
+    echo "verifyChain = yes"
+    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
+    echo "TIMEOUTconnect = 10"
+    echo ""
+} > /etc/stunnel/stunnel_mlat_results.conf
+
+# Configure stunnel for mlat-server traffic
+{
+    if [[ -n "$DEBUG_LOGGING" ]]; then
+        : #pass
+    else
+        echo "debug = 4"
+    fi
+    echo "foreground = yes"
+    echo "syslog = no"
+    echo ""
+    echo "[planewatch-mlat-server-tunnel]"
+    echo "client = yes"
+    echo "sni = ${API_KEY}"
+    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}"
+    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}"
+    echo "CApath = /etc/ssl/certs"
+    echo "verifyChain = yes"
+    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
+    echo "TIMEOUTconnect = 10"
+    echo ""
+} > /etc/stunnel/stunnel_mlat_server.conf
