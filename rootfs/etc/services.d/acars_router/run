@@ -30,7 +30,7 @@ fi
 
 # If ACARS or VDLM2 are enabled, then start the router
 if [[ "${START_ACARS_ROUTER,,}" == "true" ]]; then
-
+    # shellcheck disable=SC2086,SC2016
     python3 /opt/acars_router/acars_router.py "${AR_CMD[@]}" $AR_EXTRA_ARGS \
         2>&1 \
         | stdbuf -o0 awk '{print "[acars_router] " $0}'

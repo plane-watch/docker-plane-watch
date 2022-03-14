@@ -11,6 +11,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
         sleep 5
 
         # Launch mlat-client
+        # shellcheck disable=SC2016
         /usr/local/bin/mlat-client \
             --input-type "$MLAT_INPUT_TYPE" \
             --input-connect "${BEASTHOST}":"${BEASTPORT}" \
