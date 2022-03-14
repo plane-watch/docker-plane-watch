@@ -3,16 +3,16 @@ FROM python:3-slim
 ENV BEASTPORT=30005 \
     PW_FEED_DESTINATION_HOSTNAME=feed.push.plane.watch \
     PW_FEED_DESTINATION_BEAST_PORT=12345 \
+    PW_FEED_DESTINATION_MLAT_SERVER_PORT=12346 \
     PW_FEED_DESTINATION_ACARS_PORT=5550 \
     PW_FEED_DESTINATION_VDLM2_PORT=5555 \
-    REDUCE_INTERVAL="0.5" \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     ACARS_PORT=15550 \
-    VDLM2_PORT=15555
+    VDLM2_PORT=15555 \
+    ENABLE_MLAT=true \
+    MLAT_INPUT_TYPE=beast
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-COPY rootfs/ /
 
 RUN set -x && \
     TEMP_PACKAGES=() && \
@@ -53,6 +53,13 @@ RUN set -x && \
     popd && \
     # Install readsb - Copy readsb executables to /usr/local/bin/.
     find "/src/readsb-protobuf" -maxdepth 1 -executable -type f -exec cp -v {} /usr/local/bin/ \; && \
+    # mlat-client
+    git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
+    pushd /src/mlat-client && \
+    ./setup.py build && \
+    ./setup.py install && \
+    cp -v ./mlat-client /usr/local/bin/mlat-client && \
+    popd && \
     # Deploy acars_router
     git clone --depth 1 --single-branch --branch main https://github.com/sdr-enthusiasts/acars_router.git "/src/acars_router" && \
     python3 -m pip install --no-cache-dir --upgrade pip && \
@@ -82,6 +89,8 @@ RUN set -x && \
     echo "readsb $(readsb --version | cut -d ' ' -f 2)" >> /VERSIONS && \
     set +o pipefail && \
     echo "stunnel $(stunnel 2>&1 | grep '\[\.\] stunnel' | cut -d ' ' -f 3)" >> /VERSIONS
+
+COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
