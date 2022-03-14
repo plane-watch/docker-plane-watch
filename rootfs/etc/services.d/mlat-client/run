@@ -6,6 +6,9 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # Make sure we have the needed env vars
     if [[ -n "$LAT" ]] && [[ -n "$LONG" ]] && [[ -n "$ALT" ]]; then
+    
+        [[ -z "${MLATHOST}" ]] && MLATHOST="${BEASTHOST}" || true
+        [[ -z "${MLATPORT}" ]] && MLATPORT="${BEASTPORT}" || true
 
         # give other stuff some time to come up
         sleep 5
@@ -14,7 +17,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
         # shellcheck disable=SC2016
         /usr/local/bin/mlat-client \
             --input-type "$MLAT_INPUT_TYPE" \
-            --input-connect "${BEASTHOST}":"${BEASTPORT}" \
+            --input-connect "${MLATHOST}":"${MLATPORT}" \
             --lat "$LAT" \
             --lon "$LONG" \
             --alt "${ALT}" \
