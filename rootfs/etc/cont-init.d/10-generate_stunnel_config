@@ -73,29 +73,6 @@ mkdir -p /etc/stunnel
     echo ""
 } > /etc/stunnel/stunnel_vdlm2.conf
 
-# Configure stunnel for mlat-results traffic
-{
-    if [[ -n "$DEBUG_LOGGING" ]]; then
-        echo "debug = 1"
-    else
-        echo "debug = 4"
-    fi
-    echo "foreground = yes"
-    echo "syslog = no"
-    echo "pid = /var/run/stunnel_mlat_results.pid"
-    echo ""
-    echo "[planewatch-mlat-results-tunnel]"
-    echo "client = yes"
-    echo "sni = ${API_KEY}"
-    echo "accept =  127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}"
-    echo "connect = ${PW_FEED_DESTINATION_HOSTNAME}:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}"
-    echo "CApath = /etc/ssl/certs"
-    echo "verifyChain = yes"
-    echo "checkHost = ${PW_FEED_DESTINATION_HOSTNAME}"
-    echo "TIMEOUTconnect = 10"
-    echo ""
-} > /etc/stunnel/stunnel_mlat_results.conf
-
 # Configure stunnel for mlat-server traffic
 {
     if [[ -n "$DEBUG_LOGGING" ]]; then

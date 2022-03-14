@@ -18,7 +18,6 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
             --lat "$LAT" \
             --lon "$LONG" \
             --alt "${ALT}" \
-            --results "beast,connect,127.0.0.1:${PW_FEED_DESTINATION_MLAT_RESULTS_PORT}" \
             --results "beast,listen,30105" \
             --server "127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}" \
             --user "${API_KEY}" \
