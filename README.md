@@ -226,8 +226,9 @@ There are a series of available environment variables:
 | `LAT` | Required for MLAT | Latitude of receiver antenna | |
 | `LONG` | Required for MLAT | Longitude of receiver antenna | |
 | `ALT` | Required for MLAT | Altitude of receiver antenna. Suffixed with `ft` or `m`. | |
-| `BEAST_REDUCE_INTERVAL` | Optional. For reduced bandwidth. If set, only send position updates every `BEAST_REDUCE_INTERVAL` seconds. | |
-| `ENABLE_MLAT` | Optional. Set to `false` to disable MLAT. | `true` |
+| `BEAST_REDUCE_INTERVAL` | Optional. For reduced bandwidth. If set, only send position updates every `BEAST_REDUCE_INTERVAL` seconds | |
+| `ENABLE_MLAT` | Optional. Set to `false` to disable MLAT | `true` |
+| `MLAT_DATASOURCE` | Optional. IP/Hostname and port of an MLAT data source | `BEASTHOST:BEASTPORT` setting if omitted |
 | `TZ` | Optional. Your local timezone | `GMT` |
 
 ## Ports
