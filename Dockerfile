@@ -88,7 +88,10 @@ RUN set -x && \
     # Document versions.
     echo "readsb $(readsb --version | cut -d ' ' -f 2)" >> /VERSIONS && \
     set +o pipefail && \
-    echo "stunnel $(stunnel 2>&1 | grep '\[\.\] stunnel' | cut -d ' ' -f 3)" >> /VERSIONS
+    echo "stunnel $(stunnel 2>&1 | grep '\[\.\] stunnel' | cut -d ' ' -f 3)" >> /VERSIONS && \
+    IMAGE_VERSION=$(git ls-remote https://github.com/plane-watch/docker-plane-watch.git | grep HEAD | tr '\t' ' ' | cut -d ' ' -f 1) && \
+    echo ${IMAGE_VERSION::7} > /IMAGE_VERSION && \
+    cat /IMAGE_VERSION
 
 COPY rootfs/ /
 
