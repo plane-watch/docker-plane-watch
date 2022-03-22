@@ -2,7 +2,7 @@
 name: Deploy
 
 on:
-  # workflow_dispatch:
+  workflow_dispatch:
   #   inputs:
   #     reason:
   #       required: true
