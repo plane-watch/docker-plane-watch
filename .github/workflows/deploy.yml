@@ -48,6 +48,7 @@ jobs:
       ghcr_repo: ${{ github.repository }}
       dockerhub_profile: planewatch
       dockerhub_repo: plane-watch
+      dockerhub_username: mikenye
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
