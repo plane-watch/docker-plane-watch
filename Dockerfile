@@ -1,4 +1,20 @@
-FROM python:3-slim
+FROM golang:latest AS pw-pipeline-builder
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -x && \
+    git clone \
+      --depth 1 \
+      --branch main \
+      https://github.com/plane-watch/pw-pipeline.git /src/pw-pipeline \
+      && \
+    pushd /src/pw-pipeline && \
+    make && \
+    ./bin/pw_ingest --version
+
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
+
+COPY --from=pw-pipeline-builder /src/pw-pipeline/bin/pw_ingest /usr/local/bin/pw_ingest
 
 ENV BEASTPORT=30005 \
     PW_FEED_DESTINATION_HOSTNAME=feed.push.plane.watch \
@@ -23,15 +39,8 @@ RUN set -x && \
     # Install stunnel
     KEPT_PACKAGES+=(ca-certificates) && \
     KEPT_PACKAGES+=(stunnel) && \
-    # Dependencies for readsb
-    TEMP_PACKAGES+=(libncurses-dev) && \
-    KEPT_PACKAGES+=(libncurses6) && \
-    TEMP_PACKAGES+=(libprotobuf-c-dev) && \
-    KEPT_PACKAGES+=(libprotobuf-c1) && \
-    TEMP_PACKAGES+=(librrd-dev) && \
-    KEPT_PACKAGES+=(librrd8) && \
-    TEMP_PACKAGES+=(pkg-config) && \
-    TEMP_PACKAGES+=(protobuf-c-compiler) && \
+    # Dependencies for mlat-client
+    TEMP_PACKAGES+=(libpython3-dev) && \
     # Dependencies for s6-overlay
     TEMP_PACKAGES+=(curl) && \
     TEMP_PACKAGES+=(file) && \
@@ -46,13 +55,6 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
-    # Build readsb
-    git clone --depth 1 --single-branch --branch dev https://github.com/Mictronics/readsb-protobuf.git "/src/readsb-protobuf" && \
-    pushd "/src/readsb-protobuf" && \
-    make BLADERF=no RTLSDR=no PLUTOSDR=no && \
-    popd && \
-    # Install readsb - Copy readsb executables to /usr/local/bin/.
-    find "/src/readsb-protobuf" -maxdepth 1 -executable -type f -exec cp -v {} /usr/local/bin/ \; && \
     # mlat-client
     git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
     pushd /src/mlat-client && \
@@ -68,18 +70,6 @@ RUN set -x && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
-    # Install 
-    # Deploy healthchecks framework
-    git clone \
-      --depth=1 \
-      https://github.com/mikenye/docker-healthchecks-framework.git \
-      /opt/healthchecks-framework \
-      && \
-    rm -rf \
-      /opt/healthchecks-framework/.git* \
-      /opt/healthchecks-framework/*.md \
-      /opt/healthchecks-framework/tests \
-      && \
     # Get version before clean-up
     IMAGE_VERSION=$(git ls-remote https://github.com/plane-watch/docker-plane-watch.git | grep HEAD | tr '\t' ' ' | cut -d ' ' -f 1) && \
     # Clean-up.
@@ -88,7 +78,6 @@ RUN set -x && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
     # Document versions.
-    echo "readsb $(readsb --version | cut -d ' ' -f 2)" >> /VERSIONS && \
     set +o pipefail && \
     echo "stunnel $(stunnel 2>&1 | grep '\[\.\] stunnel' | cut -d ' ' -f 3)" >> /VERSIONS && \
     echo ${IMAGE_VERSION::7} > /IMAGE_VERSION && \
