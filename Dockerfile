@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.9-slim
 
 ENV BEASTPORT=30005 \
     PW_FEED_DESTINATION_HOSTNAME=feed.push.plane.watch \
