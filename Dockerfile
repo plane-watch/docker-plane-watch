@@ -1,6 +1,8 @@
 FROM golang:1.20 AS pw_feeder_builder
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
+    apt-get update && \
+    apt-get install -y ca-certificates && \
     git clone https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
     pushd /src/pw-feeder/pw-feeder && \
     go build ./...
