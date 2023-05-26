@@ -8,7 +8,7 @@ RUN set -x && \
     go mod tidy && \
     go build ./...
 
-FROM debian:bookworm-20230522-slim
+FROM debian:bullseye-20230522
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
@@ -82,8 +82,16 @@ RUN set -x && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
-    # Simple tests
+    # certs
+    pushd /etc/ssl/certs/ && \
+    curl -O https://letsencrypt.org/certs/isrgrootx1.pem && \
+    curl -O https://letsencrypt.org/certs/isrg-root-x2.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-r3.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-e1.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-r4.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-e2.pem && \
     update-ca-certificates && \
+    # Simple tests
     mlat-client --help && \
     pw-feeder --version && \
     # Document versions.
