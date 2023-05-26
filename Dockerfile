@@ -5,7 +5,7 @@ RUN set -x && \
     pushd /src/pw-feeder/pw-feeder && \
     go build ./...
 
-FROM debian:bullseye-20230522-slim
+FROM debian:bullseye-20230522
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
