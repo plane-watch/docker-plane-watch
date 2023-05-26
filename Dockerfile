@@ -91,6 +91,7 @@ RUN set -x && \
     curl -O https://letsencrypt.org/certs/lets-encrypt-r4.pem && \
     curl -O https://letsencrypt.org/certs/lets-encrypt-e2.pem && \
     update-ca-certificates && \
+    popd && \
     # Simple tests
     mlat-client --help && \
     pw-feeder --version && \
