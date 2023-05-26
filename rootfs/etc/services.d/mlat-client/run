@@ -31,11 +31,11 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     else
 
-        sleep 86400
+        sleep infinity
 
     fi
 
 # If not enabled, sleep forever
 else
-    sleep 86400
+    sleep infinity
 fi
