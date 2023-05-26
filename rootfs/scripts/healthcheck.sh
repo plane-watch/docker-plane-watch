@@ -13,8 +13,11 @@ if ! check_tcp4_connection_established ANY ANY "$(get_ipv4 "$BEASTHOST")" "$BEAS
     EXITCODE=1
 fi
 
-echo "Ensure connection to plane.watch $PW_FEED_DESTINATION_HOSTNAME:$PW_FEED_DESTINATION_BEAST_PORT"
-if ! check_tcp4_connection_established ANY ANY "$(get_ipv4 "$PW_FEED_DESTINATION_HOSTNAME")" "$PW_FEED_DESTINATION_BEAST_PORT"; then
+PW_FEED_DESTINATION_BEAST_HOST=$(echo "${PW_BEAST_ENDPOINT}" | cut -d: -f1)
+PW_FEED_DESTINATION_BEAST_PORT=$(echo "${PW_BEAST_ENDPOINT}" | cut -d: -f2)
+
+echo "Ensure connection to plane.watch $PW_FEED_DESTINATION_BEAST_HOST:$PW_FEED_DESTINATION_BEAST_PORT"
+if ! check_tcp4_connection_established ANY ANY "$(get_ipv4 "$PW_FEED_DESTINATION_BEAST_HOST")" "$PW_FEED_DESTINATION_BEAST_PORT"; then
     EXITCODE=1
 fi
 
