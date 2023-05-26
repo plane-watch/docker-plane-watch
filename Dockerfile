@@ -53,6 +53,16 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
+    # certs
+    pushd /etc/ssl/certs/ && \
+    curl -O https://letsencrypt.org/certs/isrgrootx1.pem && \
+    curl -O https://letsencrypt.org/certs/isrg-root-x2.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-r3.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-e1.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-r4.pem && \
+    curl -O https://letsencrypt.org/certs/lets-encrypt-e2.pem && \
+    update-ca-certificates && \
+    popd && \
     # mlat-client
     git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
     pushd /src/mlat-client && \
@@ -82,16 +92,6 @@ RUN set -x && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
-    # certs
-    pushd /etc/ssl/certs/ && \
-    curl -O https://letsencrypt.org/certs/isrgrootx1.pem && \
-    curl -O https://letsencrypt.org/certs/isrg-root-x2.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-r3.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-e1.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-r4.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-e2.pem && \
-    update-ca-certificates && \
-    popd && \
     # Simple tests
     mlat-client --help && \
     pw-feeder --version && \
