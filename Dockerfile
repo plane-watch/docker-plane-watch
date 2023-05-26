@@ -1,4 +1,4 @@
-FROM golang:1.20 AS pw_feeder_builder
+FROM golang:1.20.4-bullseye AS pw_feeder_builder
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
     apt-get update && \
@@ -17,9 +17,7 @@ ENV BEASTPORT=30005 \
     PW_MLAT_ENDPOINT=feed.push.plane.watch:12346 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     ENABLE_MLAT=true \
-    MLAT_INPUT_TYPE=beast \
-    SSL_CERT_DIR=/etc/ssl/certs \
-    SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+    MLAT_INPUT_TYPE=beast
     # ACARS_PORT=15550 \
     # VDLM2_PORT=15555 \
     # PW_FEED_DESTINATION_ACARS_PORT=5550 \
