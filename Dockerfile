@@ -8,7 +8,7 @@ RUN set -x && \
     go mod tidy && \
     go build ./...
 
-FROM debian:bullseye-20230522
+FROM debian:bookworm-20230522-slim
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
