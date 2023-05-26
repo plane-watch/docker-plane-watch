@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/usr/bin/env bash
 #shellcheck shell=bash
 
 /usr/local/sbin/pw-feeder
