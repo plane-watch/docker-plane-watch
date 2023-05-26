@@ -5,6 +5,7 @@ RUN set -x && \
     apt-get install -y ca-certificates && \
     git clone https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
     pushd /src/pw-feeder/pw-feeder && \
+    go mod tidy && \
     go build ./...
 
 FROM debian:bullseye-20230522
