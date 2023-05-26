@@ -81,6 +81,7 @@ RUN set -x && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
     # Simple tests
+    update-ca-certificates && \
     mlat-client --help && \
     pw-feeder --version && \
     # Document versions.
