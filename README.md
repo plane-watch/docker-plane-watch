@@ -104,7 +104,7 @@ You can test to ensure your container is seeing ADS-B data by running:
 docker exec -it planewatch viewadsb
 ```
 
-## Advanced Up-and-Running with Docker Compose, including ACARS/VDLM2
+<!-- ## Advanced Up-and-Running with Docker Compose, including ACARS/VDLM2
 
 [plane.watch](https://plane.watch) now supports receiving ACARS and VDLM2! If you have multiple SDRs and feel so inclined, we would love your ACARS & VDLM2 data.
 
@@ -208,7 +208,7 @@ For more information on ACARS/VDLM2, please see:
 * [sdr-enthusiasts/docker-acarshub](https://github.com/sdr-enthusiasts/docker-acarshub/blob/main/README.md)
 * [sdr-enthusiasts/docker-acarsdec](https://github.com/sdr-enthusiasts/docker-acarsdec/blob/main/README.md)
 * [sdr-enthusiasts/docker-dumpvdl2](https://github.com/sdr-enthusiasts/docker-dumpvdl2/blob/main/README.md)
-* [sdr-enthusiasts/acars_router](https://github.com/sdr-enthusiasts/acars_router/blob/main/README.md)
+* [sdr-enthusiasts/acars_router](https://github.com/sdr-enthusiasts/acars_router/blob/main/README.md) -->
 
 ## Runtime Environment Variables
 
@@ -219,17 +219,17 @@ There are a series of available environment variables:
 | `API_KEY` | Required. Your plane.watch API Key | |
 | `BEASTHOST` | Required. IP, hostname or container name of a Mode-S/BEAST provider (readsb/dump1090) | |
 | `BEASTPORT` | Optional. TCP port number of Mode-S/BEAST provider (readsb/dump1090) | `30005` |
-| `ACARS_HOST` | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router) | |
-| `ACARS_PORT` | Optional. TCP port number of TCP ACARS source (eg: acars_router) | `15550` |
-| `VDLM2_HOST` | Optional. IP, hostname or container name of a TCP VDLM2 source (eg: acars_router) | |
-| `VDLM2_PORT` | Optional. TCP port number of TCP VDLM2 source (eg: acars_router) | `15555` |
 | `LAT` | Required for MLAT | Latitude of receiver antenna | |
 | `LONG` | Required for MLAT | Longitude of receiver antenna | |
 | `ALT` | Required for MLAT | Altitude of receiver antenna. Suffixed with `ft` or `m`. | |
-| `BEAST_REDUCE_INTERVAL` | Optional. For reduced bandwidth. If set, only send position updates every `BEAST_REDUCE_INTERVAL` seconds | |
 | `ENABLE_MLAT` | Optional. Set to `false` to disable MLAT | `true` |
 | `MLAT_DATASOURCE` | Optional. IP/Hostname and port of an MLAT data source | `BEASTHOST:BEASTPORT` setting if omitted |
 | `TZ` | Optional. Your local timezone | `GMT` |
+
+<!-- | `ACARS_HOST` | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router) | |
+| `ACARS_PORT` | Optional. TCP port number of TCP ACARS source (eg: acars_router) | `15550` |
+| `VDLM2_HOST` | Optional. IP, hostname or container name of a TCP VDLM2 source (eg: acars_router) | |
+| `VDLM2_PORT` | Optional. TCP port number of TCP VDLM2 source (eg: acars_router) | `15555` | -->
 
 ## Ports
 

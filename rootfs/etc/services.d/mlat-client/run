@@ -22,7 +22,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
             --lon "$LONG" \
             --alt "${ALT}" \
             --results "beast,listen,30105" \
-            --server "127.0.0.1:${PW_FEED_DESTINATION_MLAT_SERVER_PORT}" \
+            --server "${MLATSERVERHOST}:${MLATSERVERPORT}" \
             --user "${API_KEY}" \
         2>&1 \
         | stdbuf -o0 sed --unbuffered '/^$/d' \
@@ -31,11 +31,11 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     else
 
-        sleep 86400
+        sleep infinity
 
     fi
 
 # If not enabled, sleep forever
 else
-    sleep 86400
+    sleep infinity
 fi
