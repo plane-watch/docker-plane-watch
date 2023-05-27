@@ -48,7 +48,7 @@ docker run \
   -e ALT=YOUR_ALTITUDE \
   --tmpfs=/run:exec,size=64M \
   --tmpfs=/var/log \
-  planewatch/plane-watch:latest
+  ghcr.io/plane-watch/docker-plane-watch:latest
 ```
 
 Where:
@@ -73,7 +73,7 @@ version: '3.8'
 
 services:
   planewatch:
-    image: planewatch/plane-watch:latest
+    image: ghcr.io/plane-watch/docker-plane-watch:latest
     tty: true
     container_name: planewatch
     restart: always
