@@ -24,7 +24,7 @@ Head over to <https://atc.plane.watch> and sign up for an account.
 
 ### Create your feeder
 
-Login to <https://atc.plane.watch>, click on **Feeders**, **Feeders**, **+ New Feeder**. Fill out your details.
+Login to <https://atc.plane.watch>, click on **Feeders**, **+ New Feeder**. Fill out your details.
 
 When you save your feeder, an **API Key** will be generated. Take note of this, as it will be required when deploying the feeder container.
 
