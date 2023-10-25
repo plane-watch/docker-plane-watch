@@ -3,7 +3,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    git clone -b get_status_from_atc https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    git clone --branch main https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
     go build ./...
