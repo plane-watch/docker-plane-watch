@@ -1,4 +1,4 @@
-FROM golang:1.21.3-bullseye AS pw_feeder_builder
+FROM golang:1.21.4-bullseye AS pw_feeder_builder
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
     apt-get update && \
