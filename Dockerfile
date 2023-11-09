@@ -1,14 +1,18 @@
 FROM golang:1.21.4-bullseye AS pw_feeder_builder
+
+ARG PW_FEEDER_BRANCH
+
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    git clone --branch main https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    git clone --branch "${PW_FEEDER_BRANCH:-main}" https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
     go build ./...
 
-FROM debian:bullseye-20231009
+FROM debian:bullseye-20231030
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
