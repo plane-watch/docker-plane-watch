@@ -1,4 +1,4 @@
-FROM golang:1.21.4-bullseye AS pw_feeder_builder
+FROM golang:1.21.5-bullseye AS pw_feeder_builder
 
 ARG PW_FEEDER_BRANCH
 
