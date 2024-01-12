@@ -12,7 +12,7 @@ RUN set -x && \
     go mod tidy && \
     go build ./...
 
-FROM debian:bullseye-20231030
+FROM debian:bullseye-20240110
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
