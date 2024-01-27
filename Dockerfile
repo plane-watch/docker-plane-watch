@@ -102,7 +102,7 @@ RUN set -x && \
     pw-feeder --version && \
     # Document versions.
     set +o pipefail && \
-    cat /IMAGE_VERSION
+    cat /PW_FEEDER_VERSION
 
 COPY rootfs/ /
 
