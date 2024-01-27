@@ -53,8 +53,6 @@ RUN set -x && \
     TEMP_PACKAGES+=(xz-utils) && \
     # Better logging
     KEPT_PACKAGES+=(gawk) && \
-    # Dependencies for healthcheck
-    KEPT_PACKAGES+=(net-tools) && \
     # Install packages
     apt-get update && \
     apt-get install --no-install-recommends -y \
@@ -76,24 +74,11 @@ RUN set -x && \
     pushd /src/mlat-client && \
     ./setup.py build && \
     ./setup.py install && \
-    # cp -v ./mlat-client /usr/local/bin/mlat-client && \
     popd && \
-    # Deploy s6-overlay.
+    # Deploy s6-overlay
     curl -o /tmp/deploy-s6-overlay.sh -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay-v3.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
-    # Install 
-    # Deploy healthchecks framework
-    git clone \
-      --depth=1 \
-      https://github.com/mikenye/docker-healthchecks-framework.git \
-      /opt/healthchecks-framework \
-      && \
-    rm -rf \
-      /opt/healthchecks-framework/.git* \
-      /opt/healthchecks-framework/*.md \
-      /opt/healthchecks-framework/tests \
-      && \
-    # Clean-up.
+    # Clean-up
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
@@ -101,7 +86,7 @@ RUN set -x && \
     # Simple tests
     mlat-client --help && \
     pw-feeder --version && \
-    # Document versions.
+    # Document versions
     set +o pipefail && \
     cat /PW_FEEDER_VERSION
 
