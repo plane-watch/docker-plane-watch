@@ -40,6 +40,7 @@ RUN set -x && \
     # For mlat-client
     KEPT_PACKAGES+=(python-is-python3) && \
     TEMP_PACKAGES+=(python3-distutils) && \
+    TEMP_PACKAGES+=(python3-setuptools) && \
     TEMP_PACKAGES+=(libpython3-dev) && \
     # Install stunnel
     KEPT_PACKAGES+=(ca-certificates) && \
