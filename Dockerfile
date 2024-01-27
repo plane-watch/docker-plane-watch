@@ -73,7 +73,7 @@ RUN set -x && \
     pushd /src/mlat-client && \
     ./setup.py build && \
     ./setup.py install && \
-    cp -v ./mlat-client /usr/local/bin/mlat-client && \
+    # cp -v ./mlat-client /usr/local/bin/mlat-client && \
     popd && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
