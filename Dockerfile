@@ -13,7 +13,9 @@ RUN set -x && \
     git checkout "${PW_FEEDER_BRANCH:-$LATEST_TAG}" && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
-    go build ./cmd/pw-feeder/
+    go build ./cmd/pw-feeder/ && \
+    echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
+
 
 FROM debian:bullseye-20240110
 
@@ -29,6 +31,7 @@ ENV BEASTPORT=30005 \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=pw_feeder_builder /src/pw-feeder/pw-feeder/pw-feeder /usr/local/sbin/pw-feeder
+COPY --from=pw_feeder_builder /PW_FEEDER_VERSION /PW_FEEDER_VERSION
 
 RUN set -x && \
     TEMP_PACKAGES=() && \
@@ -89,8 +92,6 @@ RUN set -x && \
       /opt/healthchecks-framework/*.md \
       /opt/healthchecks-framework/tests \
       && \
-    # Get version before clean-up
-    IMAGE_VERSION=$(git ls-remote https://github.com/plane-watch/docker-plane-watch.git | grep HEAD | tr '\t' ' ' | cut -d ' ' -f 1) && \
     # Clean-up.
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -y && \
@@ -101,7 +102,6 @@ RUN set -x && \
     pw-feeder --version && \
     # Document versions.
     set +o pipefail && \
-    echo "${IMAGE_VERSION::7}" > /IMAGE_VERSION && \
     cat /IMAGE_VERSION
 
 COPY rootfs/ /
