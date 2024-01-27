@@ -1,4 +1,4 @@
-FROM golang:1.21.4-bullseye AS pw_feeder_builder
+FROM golang:1.21.6-bullseye AS pw_feeder_builder
 
 ARG PW_FEEDER_BRANCH
 
@@ -12,7 +12,7 @@ RUN set -x && \
     go mod tidy && \
     go build ./cmd/pw-feeder/
 
-FROM debian:bullseye-20231030
+FROM debian:bullseye-20240110
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
