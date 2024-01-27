@@ -54,7 +54,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # check pw-feeder to plane.watch MLAT connection
     echo -n "pw-feeder connected to $PW_MLAT_ENDPOINT: "
-    if ! ss --tcp --processes state established dst $PW_MLAT_ENDPOINT | grep pw-feeder > /dev/null 2>&1; then
+    if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT" | grep pw-feeder > /dev/null 2>&1; then
         EXITCODE=1
         echo "FAIL"
     else

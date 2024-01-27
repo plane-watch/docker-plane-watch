@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+#shellcheck shell=bash
 
 # If mlat enabled...
 if [[ "${ENABLE_MLAT,,}" == "true" ]]; then

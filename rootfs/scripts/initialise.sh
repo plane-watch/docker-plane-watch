@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+#shellcheck shell=bash
 
 NOCOLOR='\033[0m'
 LIGHTRED='\033[1;31m'
