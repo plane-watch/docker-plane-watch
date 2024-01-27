@@ -9,12 +9,16 @@ if [[ -n "$DEBUG_LOGGING" ]]; then
     set -x
 fi
 
+echo "[init] Setting timezone..."
+
 # Set up timezone
 if [ -z "${TZ}" ]; then
   echo -e "${YELLOW}WARNING: TZ environment variable not set${NOCOLOR}"
 else
   ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
 fi
+
+echo "[init] Checking environment variables..."
 
 # Check to make sure the correct command line arguments have been set
 EXITCODE=0
@@ -45,5 +49,7 @@ fi
 if [ "$EXITCODE" -ne 0 ]; then
   exit 1
 fi
+
+echo "[init] Completed"
 
 exit "$EXITCODE"
