@@ -1,7 +1,6 @@
-#!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+#!/command/with-contenv bash
+#shellcheck shell=bash
 
-# Define bash colours
 NOCOLOR='\033[0m'
 LIGHTRED='\033[1;31m'
 YELLOW='\033[1;33m'
@@ -10,6 +9,17 @@ YELLOW='\033[1;33m'
 if [[ -n "$DEBUG_LOGGING" ]]; then
     set -x
 fi
+
+echo "[init] Setting timezone..."
+
+# Set up timezone
+if [ -z "${TZ}" ]; then
+  echo -e "${YELLOW}WARNING: TZ environment variable not set${NOCOLOR}"
+else
+  ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
+fi
+
+echo "[init] Checking environment variables..."
 
 # Check to make sure the correct command line arguments have been set
 EXITCODE=0
@@ -40,5 +50,7 @@ fi
 if [ "$EXITCODE" -ne 0 ]; then
   exit 1
 fi
+
+echo "[init] Completed"
 
 exit "$EXITCODE"

@@ -50,10 +50,11 @@ RUN set -x && \
     TEMP_PACKAGES+=(curl) && \
     TEMP_PACKAGES+=(file) && \
     TEMP_PACKAGES+=(gnupg2) && \
+    TEMP_PACKAGES+=(xz-utils) && \
+    # Dependencies for healthcheck
+    KEPT_PACKAGES+=(iproute2) && \
     # Better logging
     KEPT_PACKAGES+=(gawk) && \
-    # Dependencies for healthcheck
-    KEPT_PACKAGES+=(net-tools) && \
     # Install packages
     apt-get update && \
     apt-get install --no-install-recommends -y \
@@ -75,24 +76,11 @@ RUN set -x && \
     pushd /src/mlat-client && \
     ./setup.py build && \
     ./setup.py install && \
-    # cp -v ./mlat-client /usr/local/bin/mlat-client && \
     popd && \
-    # Deploy s6-overlay.
-    curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
+    # Deploy s6-overlay
+    curl -o /tmp/deploy-s6-overlay.sh -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay-v3.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
-    # Install 
-    # Deploy healthchecks framework
-    git clone \
-      --depth=1 \
-      https://github.com/mikenye/docker-healthchecks-framework.git \
-      /opt/healthchecks-framework \
-      && \
-    rm -rf \
-      /opt/healthchecks-framework/.git* \
-      /opt/healthchecks-framework/*.md \
-      /opt/healthchecks-framework/tests \
-      && \
-    # Clean-up.
+    # Clean-up
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
@@ -100,7 +88,7 @@ RUN set -x && \
     # Simple tests
     mlat-client --help && \
     pw-feeder --version && \
-    # Document versions.
+    # Document versions
     set +o pipefail && \
     cat /PW_FEEDER_VERSION
 
@@ -108,4 +96,4 @@ COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
-HEALTHCHECK --interval=300s --timeout=5s --start-period=60s --retries=3 CMD /scripts/healthcheck.sh
+HEALTHCHECK --interval=300s --timeout=15s --start-period=60s --retries=3 CMD bash /scripts/healthcheck.sh
