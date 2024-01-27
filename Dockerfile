@@ -7,7 +7,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    git clone --branch "${PW_FEEDER_BRANCH:-main}" https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    git clone https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    pushd /src/pw-feeder && \
+    LATEST_TAG=$(git describe --tags --abbrev=0) && \
+    git checkout "${PW_FEEDER_BRANCH:-$LATEST_TAG}" && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
     go build ./cmd/pw-feeder/
@@ -22,10 +25,6 @@ ENV BEASTPORT=30005 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     ENABLE_MLAT=true \
     MLAT_INPUT_TYPE=beast
-    # ACARS_PORT=15550 \
-    # VDLM2_PORT=15555 \
-    # PW_FEED_DESTINATION_ACARS_PORT=5550 \
-    # PW_FEED_DESTINATION_VDLM2_PORT=5555 \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
