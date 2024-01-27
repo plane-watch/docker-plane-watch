@@ -50,6 +50,7 @@ RUN set -x && \
     TEMP_PACKAGES+=(curl) && \
     TEMP_PACKAGES+=(file) && \
     TEMP_PACKAGES+=(gnupg2) && \
+    TEMP_PACKAGES+=(xz-utils) && \
     # Better logging
     KEPT_PACKAGES+=(gawk) && \
     # Dependencies for healthcheck
