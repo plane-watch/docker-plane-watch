@@ -1,4 +1,4 @@
-FROM golang:1.21.4-bullseye AS pw_feeder_builder
+FROM golang:1.21.6-bullseye AS pw_feeder_builder
 
 ARG PW_FEEDER_BRANCH
 
@@ -7,12 +7,17 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -x && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    git clone --branch "${PW_FEEDER_BRANCH:-main}" https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    git clone https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
+    pushd /src/pw-feeder && \
+    LATEST_TAG=$(git describe --tags --abbrev=0) && \
+    git checkout "${PW_FEEDER_BRANCH:-$LATEST_TAG}" && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
-    go build ./...
+    go build ./cmd/pw-feeder/ && \
+    echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
 
-FROM debian:bullseye-20231030
+
+FROM debian:bullseye-20240110
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
@@ -22,14 +27,11 @@ ENV BEASTPORT=30005 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     ENABLE_MLAT=true \
     MLAT_INPUT_TYPE=beast
-    # ACARS_PORT=15550 \
-    # VDLM2_PORT=15555 \
-    # PW_FEED_DESTINATION_ACARS_PORT=5550 \
-    # PW_FEED_DESTINATION_VDLM2_PORT=5555 \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=pw_feeder_builder /src/pw-feeder/pw-feeder/pw-feeder /usr/local/sbin/pw-feeder
+COPY --from=pw_feeder_builder /PW_FEEDER_VERSION /PW_FEEDER_VERSION
 
 RUN set -x && \
     TEMP_PACKAGES=() && \
@@ -40,6 +42,7 @@ RUN set -x && \
     # For mlat-client
     KEPT_PACKAGES+=(python-is-python3) && \
     TEMP_PACKAGES+=(python3-distutils) && \
+    TEMP_PACKAGES+=(python3-setuptools) && \
     TEMP_PACKAGES+=(libpython3-dev) && \
     # Install stunnel
     KEPT_PACKAGES+=(ca-certificates) && \
@@ -72,7 +75,7 @@ RUN set -x && \
     pushd /src/mlat-client && \
     ./setup.py build && \
     ./setup.py install && \
-    cp -v ./mlat-client /usr/local/bin/mlat-client && \
+    # cp -v ./mlat-client /usr/local/bin/mlat-client && \
     popd && \
     # Deploy s6-overlay.
     curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
@@ -89,8 +92,6 @@ RUN set -x && \
       /opt/healthchecks-framework/*.md \
       /opt/healthchecks-framework/tests \
       && \
-    # Get version before clean-up
-    IMAGE_VERSION=$(git ls-remote https://github.com/plane-watch/docker-plane-watch.git | grep HEAD | tr '\t' ' ' | cut -d ' ' -f 1) && \
     # Clean-up.
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -y && \
@@ -101,8 +102,7 @@ RUN set -x && \
     pw-feeder --version && \
     # Document versions.
     set +o pipefail && \
-    echo "${IMAGE_VERSION::7}" > /IMAGE_VERSION && \
-    cat /IMAGE_VERSION
+    cat /PW_FEEDER_VERSION
 
 COPY rootfs/ /
 

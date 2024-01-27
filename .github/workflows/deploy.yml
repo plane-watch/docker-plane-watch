@@ -49,6 +49,7 @@ jobs:
       dockerhub_profile: planewatch
       dockerhub_repo: plane-watch
       dockerhub_username: mikenye
+      get_version_method: file_in_container:file=/PW_FEEDER_VERSION
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
