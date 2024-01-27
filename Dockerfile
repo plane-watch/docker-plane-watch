@@ -10,7 +10,7 @@ RUN set -x && \
     git clone --branch "${PW_FEEDER_BRANCH:-main}" https://github.com/plane-watch/pw-feeder.git /src/pw-feeder && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
-    go build ./...
+    go build ./cmd/pw-feeder/
 
 FROM debian:bullseye-20231030
 
