@@ -51,6 +51,8 @@ RUN set -x && \
     TEMP_PACKAGES+=(file) && \
     TEMP_PACKAGES+=(gnupg2) && \
     TEMP_PACKAGES+=(xz-utils) && \
+    # Dependencies for healthcheck
+    KEPT_PACKAGES+=(iproute2) && \
     # Better logging
     KEPT_PACKAGES+=(gawk) && \
     # Install packages
@@ -94,4 +96,4 @@ COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
-HEALTHCHECK --interval=300s --timeout=5s --start-period=60s --retries=3 CMD /scripts/healthcheck.sh
+HEALTHCHECK --interval=300s --timeout=5s --start-period=60s --retries=3 CMD bash /scripts/healthcheck.sh
