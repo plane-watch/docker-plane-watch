@@ -78,7 +78,7 @@ RUN set -x && \
     # cp -v ./mlat-client /usr/local/bin/mlat-client && \
     popd && \
     # Deploy s6-overlay.
-    curl -s --location -o /tmp/deploy-s6-overlay.sh https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh && \
+    curl -o /tmp/deploy-s6-overlay.sh -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay-v3.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
     # Install 
     # Deploy healthchecks framework
