@@ -96,4 +96,4 @@ COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
-HEALTHCHECK --interval=300s --timeout=5s --start-period=60s --retries=3 CMD bash /scripts/healthcheck.sh
+HEALTHCHECK --interval=300s --timeout=15s --start-period=60s --retries=3 CMD bash /scripts/healthcheck.sh
