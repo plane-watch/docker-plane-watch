@@ -17,7 +17,7 @@ RUN set -x && \
     echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
 
 
-FROM debian:bullseye-20240130
+FROM debian:bullseye-20240211
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
