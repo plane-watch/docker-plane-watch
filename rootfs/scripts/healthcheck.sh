@@ -1,4 +1,3 @@
-
 #!/command/with-contenv bash
 #shellcheck shell=bash
 
