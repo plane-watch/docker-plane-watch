@@ -13,7 +13,7 @@ RUN set -x && \
     git checkout "${PW_FEEDER_BRANCH:-$LATEST_TAG}" && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
-    go generate -v && \
+    go generate -v ./... && \
     go build -v ./cmd/pw-feeder/ && \
     echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
 
