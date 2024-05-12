@@ -82,7 +82,10 @@ RUN set -x && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
-    # Simple tests
+    # Simple tests: check CA certs loaded ok:
+    openssl s_client -verify_return_error -connect "${PW_BEAST_ENDPOINT}" && \
+    openssl s_client -verify_return_error -connect "${PW_MLAT_ENDPOINT}" && \
+    # Simple tests: ensure binaries work:
     mlat-client --help && \
     pw-feeder --version && \
     # Document versions
