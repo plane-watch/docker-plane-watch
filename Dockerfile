@@ -13,7 +13,8 @@ RUN set -x && \
     git checkout "${PW_FEEDER_BRANCH:-$LATEST_TAG}" && \
     pushd /src/pw-feeder/pw-feeder && \
     go mod tidy && \
-    go build ./cmd/pw-feeder/ && \
+    go generate -v ./... && \
+    go build -v ./cmd/pw-feeder/ && \
     echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
 
 
@@ -61,16 +62,12 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
-    # certs
-    pushd /etc/ssl/certs/ && \
-    curl -O https://letsencrypt.org/certs/isrgrootx1.pem && \
-    curl -O https://letsencrypt.org/certs/isrg-root-x2.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-r3.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-e1.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-r4.pem && \
-    curl -O https://letsencrypt.org/certs/lets-encrypt-e2.pem && \
-    update-ca-certificates && \
-    popd && \
+    # install CA cert helper script: download
+    curl -o /tmp/install_ca_certs.sh -s https://raw.githubusercontent.com/plane-watch/pw-feeder/main/install_ca_certs.sh && \
+    # install CA cert helper script: remove sudo (we're already root)
+    sed -i 's/sudo //g' /tmp/install_ca_certs.sh && \
+    # install CA cert helper script: run 
+    bash /tmp/install_ca_certs.sh && \
     # mlat-client
     git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
     pushd /src/mlat-client && \
@@ -85,7 +82,10 @@ RUN set -x && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
-    # Simple tests
+    # Simple tests: check CA certs loaded ok:
+    openssl s_client -verify_return_error -connect "${PW_BEAST_ENDPOINT}" && \
+    openssl s_client -verify_return_error -connect "${PW_MLAT_ENDPOINT}" && \
+    # Simple tests: ensure binaries work:
     mlat-client --help && \
     pw-feeder --version && \
     # Document versions
