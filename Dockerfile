@@ -62,9 +62,12 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
-    # install CA certificates
-    curl -o /tmp/insrall_ca_certs.sh -s https://raw.githubusercontent.com/plane-watch/pw-feeder/main/install_ca_certs.sh && \
-    bash /tmp/insrall_ca_certs.sh && \
+    # install CA cert helper script: download
+    curl -o /tmp/install_ca_certs.sh -s https://raw.githubusercontent.com/plane-watch/pw-feeder/main/install_ca_certs.sh && \
+    # install CA cert helper script: remove sudo (we're already root)
+    sed -i 's/sudo //g' /tmp/install_ca_certs.sh && \
+    # install CA cert helper script: run 
+    bash /tmp/install_ca_certs.sh && \
     # mlat-client
     git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
     pushd /src/mlat-client && \
