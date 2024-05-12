@@ -62,6 +62,9 @@ RUN set -x && \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} \
         && \
+    # install CA certificates
+    curl -o /tmp/insrall_ca_certs.sh -s https://raw.githubusercontent.com/plane-watch/pw-feeder/main/install_ca_certs.sh && \
+    bash /tmp/insrall_ca_certs.sh && \
     # mlat-client
     git clone --depth 1 --single-branch https://github.com/mutability/mlat-client.git "/src/mlat-client" && \
     pushd /src/mlat-client && \
