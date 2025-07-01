@@ -56,4 +56,4 @@ jobs:
       dockerhub_username: mikenye
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-      #dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
