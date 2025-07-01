@@ -59,8 +59,8 @@ RUN set -x && \
     # Install packages
     apt-get update && \
     apt-get install --no-install-recommends -y \
-    ${KEPT_PACKAGES[@]} \
-    ${TEMP_PACKAGES[@]} \
+    "${KEPT_PACKAGES[@]}" \
+    "${TEMP_PACKAGES[@]}" \
     && \
     # install CA cert helper script: download
     curl -o /tmp/install_ca_certs.sh -s https://raw.githubusercontent.com/plane-watch/pw-feeder/main/install_ca_certs.sh && \
@@ -78,7 +78,7 @@ RUN set -x && \
     curl -o /tmp/deploy-s6-overlay.sh -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay-v3.sh && \
     bash /tmp/deploy-s6-overlay.sh && \
     # Clean-up
-    apt-get remove -y ${TEMP_PACKAGES[@]} && \
+    apt-get remove -y "${TEMP_PACKAGES[@]}" && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
