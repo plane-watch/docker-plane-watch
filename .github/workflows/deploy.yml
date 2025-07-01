@@ -41,6 +41,11 @@ jobs:
   deploy:
     name: Deploy
     uses: sdr-enthusiasts/common-github-workflows/.github/workflows/sdre.yml@main
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     with:
       push_enabled: true
       push_destinations: ghcr.io;dockerhub
