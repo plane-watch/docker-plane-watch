@@ -48,13 +48,12 @@ jobs:
       id-token: write
     with:
       push_enabled: true
-      push_destinations: ghcr.io
-      #;dockerhub
+      push_destinations: ghcr.io;dockerhub
       ghcr_repo_owner: ${{ github.repository_owner }}
       ghcr_repo: ${{ github.repository }}
-      # dockerhub_profile: planewatch
-      # dockerhub_repo: plane-watch
-      # dockerhub_username: mikenye
+      dockerhub_profile: planewatch
+      dockerhub_repo: plane-watch
+      dockerhub_username: mikenye
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
       #dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
