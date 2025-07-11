@@ -40,7 +40,12 @@ jobs:
 
   deploy:
     name: Deploy
-    uses: sdr-enthusiasts/common-github-workflows/.github/workflows/build_and_push_image.yml@main
+    uses: sdr-enthusiasts/common-github-workflows/.github/workflows/sdre.yml@main
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     with:
       push_enabled: true
       push_destinations: ghcr.io;dockerhub
@@ -49,7 +54,6 @@ jobs:
       dockerhub_profile: planewatch
       dockerhub_repo: plane-watch
       dockerhub_username: mikenye
-      get_version_method: file_in_container:file=/PW_FEEDER_VERSION
     secrets:
       ghcr_token: ${{ secrets.GITHUB_TOKEN }}
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
