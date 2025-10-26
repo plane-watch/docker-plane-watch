@@ -1,4 +1,4 @@
-FROM golang:1.24.4-bookworm AS pw_feeder_builder
+FROM golang:1.25-bookworm AS pw_feeder_builder
 
 ARG PW_FEEDER_BRANCH
 
@@ -18,7 +18,7 @@ RUN set -x && \
     echo "${PW_FEEDER_BRANCH:-$LATEST_TAG}" > /PW_FEEDER_VERSION
 
 
-FROM debian:bookworm-20250630
+FROM debian:bookworm
 
 ENV BEASTPORT=30005 \
     MLATSERVERHOST=127.0.0.1 \
