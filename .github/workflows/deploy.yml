@@ -86,5 +86,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
