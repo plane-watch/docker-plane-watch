@@ -45,9 +45,23 @@ jobs:
           LATEST_RELEASE_TAG=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | jq -r .tag_name)
           echo "latest_tag_name=$LATEST_RELEASE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Build only (no push)
+      - name: Build linux/amd64 (no push)
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64
+          push: false
+          tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
+
+      - name: Build linux/arm64 (no push)
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/arm64
+          push: false
+          tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
+
+      - name: Build linux/arm/v7 (no push)
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/arm/v7
           push: false
           tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
