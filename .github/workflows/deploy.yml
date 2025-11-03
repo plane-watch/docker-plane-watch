@@ -52,21 +52,21 @@ jobs:
         with:
           platforms: linux/amd64
           push: false
-          cache-to: gha
+          cache-to: type=local,dest=/tmp/buildcache
 
       - name: Build linux/arm64
         uses: docker/build-push-action@v6
         with:
           platforms: linux/arm64
           push: false
-          cache-to: gha
+          cache-to: type=local,dest=/tmp/buildcache
 
       - name: Build linux/arm/v7
         uses: docker/build-push-action@v6
         with:
           platforms: linux/arm/v7
           push: false
-          cache-to: gha
+          cache-to: type=local,dest=/tmp/buildcache
 
 
       - name: Build and push
@@ -74,5 +74,5 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          cache-from: gha
+          cache-from: type=local,dest=/tmp/buildcache
           tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
