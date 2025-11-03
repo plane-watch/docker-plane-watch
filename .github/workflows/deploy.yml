@@ -23,41 +23,6 @@ on:
 
 jobs:
 
-  # workflow-dispatch:
-  #   name: Triggered via Workflow Dispatch?
-  #   # only run this step if workflow dispatch triggered
-  #   # log the reason the workflow dispatch was triggered
-  #   if: |
-  #     github.event_name == 'workflow_dispatch' &&
-  #     github.event.inputs.reason != ''
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Log dispatch reason
-  #       env:
-  #         INPUTS_REASON: ${{ github.event.inputs.reason }}
-  #       run: |
-  #         echo "Workflow dispatch reason: $INPUTS_REASON"
-
-#  deploy:
-#    name: Deploy
-#    uses: sdr-enthusiasts/common-github-workflows/.github/workflows/sdre.yml@main
-#    permissions:
-#      contents: read
-#      packages: write
-#      attestations: write
-#      id-token: write
-#    with:
-#      push_enabled: true
-#      push_destinations: ghcr.io
-#      ghcr_repo_owner: ${{ github.repository_owner }}
-#      ghcr_repo: ${{ github.repository }}
-#      dockerhub_profile: planewatch
-#      dockerhub_repo: plane-watch
-#      dockerhub_username: mikenye
-#    secrets:
-#      ghcr_token: ${{ secrets.GITHUB_TOKEN }}
-#      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +50,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
