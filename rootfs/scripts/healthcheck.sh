@@ -9,7 +9,7 @@ PW_BEAST_ENDPOINT_RESOLVED=$(getent hosts "$PW_BEAST_ENDPOINT" | tr -s " " | cut
 PW_MLAT_ENDPOINT_RESOLVED=$(getent hosts "$PW_MLAT_ENDPOINT" | tr -s " " | cut -d " " -f 1)
 
 # check pw-feeder to beasthost connection
-echo -n "pw-feeder connected to $BEASTHOST:$BEASTPORT (proc pw-feeder && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
+echo -n "pw-feeder connected to \$BEASTHOST:\$BEASTPORT (proc pw-feeder && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
 if ! ss --tcp --processes state established dst "$BESTHOST_RESOLVED" \&\& dport "$BEASTPORT" 2>/dev/null| grep -q pw-feeder; then
     EXITCODE=1
     echo "FAIL"
@@ -18,7 +18,7 @@ else
 fi
 
 # check pw-feeder to plane.watch BEAST connection
-echo -n "pw-feeder connected to $PW_BEAST_ENDPOINT (proc pw-feeder && dst $PW_BEAST_ENDPOINT_RESOLVED): "
+echo -n "pw-feeder connected to \$PW_BEAST_ENDPOINT (proc pw-feeder && dst $PW_BEAST_ENDPOINT_RESOLVED): "
 if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
     EXITCODE=1
     echo "FAIL"
@@ -30,7 +30,7 @@ fi
 if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # check mlat-client to beasthost connection
-    echo -n "mlat-client connected to $BEASTHOST:$BEASTPORT (proc mlat-cient && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
+    echo -n "mlat-client connected to \$BEASTHOST:\$BEASTPORT (proc mlat-cient && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
     if ! ss --tcp --processes state established dst "$BESTHOST_RESOLVED" \&\& dport "$BEASTPORT" 2>/dev/null | grep -q mlat-client; then
         EXITCODE=1
         echo "FAIL"
@@ -57,7 +57,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
     fi
 
     # check pw-feeder to plane.watch MLAT connection
-    echo -n "pw-feeder connected to $PW_MLAT_ENDPOINT (proc pw-feeder && dst $PW_MLAT_ENDPOINT_RESOLVED): "
+    echo -n "pw-feeder connected to \$PW_MLAT_ENDPOINT (proc pw-feeder && dst $PW_MLAT_ENDPOINT_RESOLVED): "
     if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
         EXITCODE=1
         echo "FAIL"
