@@ -4,9 +4,12 @@
 # Prepare EXITCODE variable
 EXITCODE=0
 
+BESTHOST_RESOLVED=$(getent hosts "$BEASTHOST" | tr -s " " | cut -d " " -f 1)
+PW_BEAST_ENDPOINT_RESOLVED=$(getent hosts "$PW_BEAST_ENDPOINT" | tr -s " " | cut -d " " -f 1)
+
 # check pw-feeder to beasthost connection
 echo -n "pw-feeder connected to $BEASTHOST:$BEASTPORT: "
-if ! ss --tcp --processes state established dst "$BEASTHOST" \&\& dport "$BEASTPORT" 2>/dev/null| grep -q pw-feeder; then
+if ! ss --tcp --processes state established dst "$BESTHOST_RESOLVED" \&\& dport "$BEASTPORT" 2>/dev/null| grep -q pw-feeder; then
     EXITCODE=1
     echo "FAIL"
 else
@@ -15,7 +18,7 @@ fi
 
 # check pw-feeder to plane.watch BEAST connection
 echo -n "pw-feeder connected to $PW_BEAST_ENDPOINT: "
-if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT" 2>/dev/null| grep -q pw-feeder; then
+if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
     EXITCODE=1
     echo "FAIL"
 else
@@ -27,7 +30,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # check mlat-client to beasthost connection
     echo -n "mlat-client connected to $BEASTHOST:$BEASTPORT: "
-    if ! ss --tcp --processes state established dst "$BEASTHOST" \&\& dport "$BEASTPORT" 2>/dev/null | grep -q mlat-client; then
+    if ! ss --tcp --processes state established dst "$BESTHOST_RESOLVED" \&\& dport "$BEASTPORT" 2>/dev/null | grep -q mlat-client; then
         EXITCODE=1
         echo "FAIL"
     else
@@ -54,7 +57,7 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # check pw-feeder to plane.watch MLAT connection
     echo -n "pw-feeder connected to $PW_MLAT_ENDPOINT: "
-    if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT" 2>/dev/null| grep -q pw-feeder; then
+    if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
         EXITCODE=1
         echo "FAIL"
     else
