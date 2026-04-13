@@ -5,8 +5,12 @@
 EXITCODE=0
 
 BESTHOST_RESOLVED=$(getent hosts "$BEASTHOST" | tr -s " " | cut -d " " -f 1)
-PW_BEAST_ENDPOINT_RESOLVED=$(getent hosts "$PW_BEAST_ENDPOINT" | tr -s " " | cut -d " " -f 1)
-PW_MLAT_ENDPOINT_RESOLVED=$(getent hosts "$PW_MLAT_ENDPOINT" | tr -s " " | cut -d " " -f 1)
+PW_BEAST_ENDPOINT_HOST=$(echo "$PW_BEAST_ENDPOINT" | cut -d ":" -f 1)
+PW_BEAST_ENDPOINT_PORT=$(echo "$PW_BEAST_ENDPOINT" | cut -d ":" -f 2)
+PW_BEAST_ENDPOINT_HOST_RESOLVED=$(getent hosts "$PW_BEAST_ENDPOINT_HOST" | tr -s " " | cut -d " " -f 1)
+PW_MLAT_ENDPOINT_HOST=$(echo "$PW_MLAT_ENDPOINT" | cut -d ":" -f 1)
+PW_MLAT_ENDPOINT_PORT=$(echo "$PW_MLAT_ENDPOINT" | cut -d ":" -f 2)
+PW_MLAT_ENDPOINT_HOST_RESOLVED=$(getent hosts "$PW_MLAT_ENDPOINT_HOST" | tr -s " " | cut -d " " -f 1)
 
 # check pw-feeder to beasthost connection
 echo -n "pw-feeder connected to \$BEASTHOST:\$BEASTPORT (proc pw-feeder && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
@@ -18,8 +22,8 @@ else
 fi
 
 # check pw-feeder to plane.watch BEAST connection
-echo -n "pw-feeder connected to \$PW_BEAST_ENDPOINT (proc pw-feeder && dst $PW_BEAST_ENDPOINT_RESOLVED): "
-if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
+echo -n "pw-feeder connected to \$PW_BEAST_ENDPOINT (proc pw-feeder && dst $PW_BEAST_ENDPOINT_HOST_RESOLVED && dport $PW_BEAST_ENDPOINT_PORT): "
+if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT_HOST_RESOLVED" \&\& dport "$PW_BEAST_ENDPOINT_PORT" 2>/dev/null| grep -q pw-feeder; then
     EXITCODE=1
     echo "FAIL"
 else
@@ -57,8 +61,8 @@ if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
     fi
 
     # check pw-feeder to plane.watch MLAT connection
-    echo -n "pw-feeder connected to \$PW_MLAT_ENDPOINT (proc pw-feeder && dst $PW_MLAT_ENDPOINT_RESOLVED): "
-    if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT_RESOLVED" 2>/dev/null| grep -q pw-feeder; then
+    echo -n "pw-feeder connected to \$PW_MLAT_ENDPOINT (proc pw-feeder && dst $PW_MLAT_ENDPOINT_HOST_RESOLVED && dport $PW_MLAT_ENDPOINT_PORT): "
+    if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT_HOST_RESOLVED" \&\& dport "$PW_MLAT_ENDPOINT_PORT" 2>/dev/null| grep -q pw-feeder; then
         EXITCODE=1
         echo "FAIL"
     else
