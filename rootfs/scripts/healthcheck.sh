@@ -34,7 +34,7 @@ fi
 if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
     # check mlat-client to beasthost connection
-    echo -n "mlat-client connected to \$BEASTHOST:\$BEASTPORT (proc mlat-cient && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
+    echo -n "mlat-client connected to \$BEASTHOST:\$BEASTPORT (proc mlat-client && dst $BESTHOST_RESOLVED && dport $BEASTPORT): "
     if ! ss --tcp --processes state established dst "$BESTHOST_RESOLVED" \&\& dport "$BEASTPORT" 2>/dev/null | grep -q mlat-client; then
         EXITCODE=1
         echo "FAIL"
