@@ -43,45 +43,6 @@ extract_ip() {
     echo "${ip#::ffff:}"
 }
 
-check_dualstack_connection() {
-    local process=$1
-    local host=$2
-    local description=$3
-
-    echo -n "$description: "
-
-    local valid_ips
-    valid_ips=$(resolve_ips "$host")
-
-    if [[ -z "$valid_ips" ]]; then
-        echo "FAIL (could not resolve $host)"
-        EXITCODE=1
-        return 1
-    fi
-
-    local peer_addresses
-    peer_addresses=$(
-        ss -tnp state established 2>/dev/null \
-        | grep "\"$process\"" \
-        | awk '{print $(NF-1)}'
-    )
-
-    while IFS= read -r peer; do
-        [[ -z "$peer" ]] && continue
-        local peer_ip
-        peer_ip=$(extract_ip "$peer")
-
-        if grep -Fqx "$peer_ip" <<< "$valid_ips"; then
-            echo "OK"
-            return 0
-        fi
-    done <<< "$peer_addresses"
-
-    echo "FAIL"
-    EXITCODE=1
-    return 1
-}
-
 check_connection_to_port() {
     local process=$1
     local host=$2
@@ -153,9 +114,10 @@ check_listening_on_sport() {
     return 1
 }
 
-check_dualstack_connection \
+check_connection_to_port \
     "pw-feeder" \
     "$BEASTHOST" \
+    "$BEASTPORT" \
     "pw-feeder connected to $BEASTHOST:$BEASTPORT"
 
 PW_BEAST_HOST=$(extract_host "$PW_BEAST_ENDPOINT")
@@ -169,9 +131,10 @@ check_connection_to_port \
 
 if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
-    check_dualstack_connection \
+    check_connection_to_port \
         "mlat-client" \
         "$BEASTHOST" \
+        "$BEASTPORT" \
         "mlat-client connected to $BEASTHOST:$BEASTPORT"
 
     check_connection_to_port \
