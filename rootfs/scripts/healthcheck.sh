@@ -1,66 +1,161 @@
 #!/command/with-contenv bash
-#shellcheck shell=bash
+# shellcheck shell=bash
 
-# Prepare EXITCODE variable
+set -uo pipefail
+
 EXITCODE=0
 
-# check pw-feeder to beasthost connection
-echo -n "pw-feeder connected to $BEASTHOST:$BEASTPORT: "
-if ! ss --tcp --processes state established dst "$BEASTHOST" \&\& dport "$BEASTPORT" 2>/dev/null| grep -q pw-feeder; then
-    EXITCODE=1
-    echo "FAIL"
-else
-    echo "OK"
-fi
+BEASTHOST="${BEASTHOST//[$'\r']/}"
+BEASTPORT="${BEASTPORT//[$'\r']/}"
+MLATSERVERHOST="${MLATSERVERHOST//[$'\r']/}"
+MLATSERVERPORT="${MLATSERVERPORT//[$'\r']/}"
+PW_BEAST_ENDPOINT="${PW_BEAST_ENDPOINT//[$'\r']/}"
+PW_MLAT_ENDPOINT="${PW_MLAT_ENDPOINT//[$'\r']/}"
 
-# check pw-feeder to plane.watch BEAST connection
-echo -n "pw-feeder connected to $PW_BEAST_ENDPOINT: "
-if ! ss --tcp --processes state established dst "$PW_BEAST_ENDPOINT" 2>/dev/null| grep -q pw-feeder; then
-    EXITCODE=1
-    echo "FAIL"
-else
-    echo "OK"
-fi
+resolve_ips() {
+    local host=$1
+    getent ahosts "$host" 2>/dev/null | awk '{print $1}' | sort -u
+}
 
-# if MLAT enabled...
+extract_host() {
+    local endpoint=$1
+
+    if [[ "$endpoint" =~ ^\[(.+)\]:[0-9]+$ ]]; then
+        echo "${BASH_REMATCH[1]}"                      # [IPv6]:port -> IPv6
+    elif [[ "$endpoint" =~ ^(.*):[0-9]+$ ]]; then
+        echo "${BASH_REMATCH[1]}"                      # Handles host:port and ::ffff:IPv4:port
+    else
+        echo "$endpoint"                               # fallback (no port or bare IPv6)
+    fi
+}
+
+extract_port() {
+    local endpoint=$1
+    if [[ "$endpoint" =~ :([0-9]+)$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    fi
+}
+
+extract_ip() {
+    local peer=$1
+    local ip
+    ip=$(extract_host "$peer")
+    echo "${ip#::ffff:}"
+}
+
+check_connection_to_port() {
+    local process=$1
+    local host=$2
+    local port=$3
+    local description=$4
+
+    echo -n "$description: "
+
+    if [[ -z "$port" ]]; then
+        echo "FAIL (missing or invalid port definition)"
+        EXITCODE=1
+        return 1
+    fi
+
+    local valid_ips
+    valid_ips=$(resolve_ips "$host")
+
+    if [[ -z "$valid_ips" ]]; then
+        echo "FAIL (could not resolve $host)"
+        EXITCODE=1
+        return 1
+    fi
+
+    local peer_addresses
+    peer_addresses=$(
+        ss -tnp state established 2>/dev/null \
+        | grep "\"$process\"" \
+        | awk '{print $(NF-1)}'
+    )
+
+    while IFS= read -r peer; do
+        [[ -z "$peer" ]] && continue
+
+        local peer_ip peer_port
+        peer_ip=$(extract_ip "$peer")
+        peer_port=$(extract_port "$peer")
+
+        if grep -Fqx "$peer_ip" <<< "$valid_ips" && (( peer_port == port )); then
+            echo "OK"
+            return 0
+        fi
+    done <<< "$peer_addresses"
+
+    echo "FAIL"
+    EXITCODE=1
+    return 1
+}
+
+check_listening_on_sport() {
+    local process=$1
+    local sport=$2
+    local description=$3
+
+    echo -n "$description: "
+
+    if [[ -z "$sport" ]]; then
+        echo "FAIL (missing or invalid local port definition)"
+        EXITCODE=1
+        return 1
+    fi
+
+    if ss -tnp state established sport = ":${sport}" 2>/dev/null | grep -q "\"$process\""; then
+        echo "OK"
+        return 0
+    fi
+
+    echo "FAIL"
+    EXITCODE=1
+    return 1
+}
+
+check_connection_to_port \
+    "pw-feeder" \
+    "$BEASTHOST" \
+    "$BEASTPORT" \
+    "pw-feeder connected to $BEASTHOST:$BEASTPORT"
+
+PW_BEAST_HOST=$(extract_host "$PW_BEAST_ENDPOINT")
+PW_BEAST_PORT=$(extract_port "$PW_BEAST_ENDPOINT")
+
+check_connection_to_port \
+    "pw-feeder" \
+    "$PW_BEAST_HOST" \
+    "$PW_BEAST_PORT" \
+    "pw-feeder connected to $PW_BEAST_ENDPOINT"
+
 if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
 
-    # check mlat-client to beasthost connection
-    echo -n "mlat-client connected to $BEASTHOST:$BEASTPORT: "
-    if ! ss --tcp --processes state established dst "$BEASTHOST" \&\& dport "$BEASTPORT" 2>/dev/null | grep -q mlat-client; then
-        EXITCODE=1
-        echo "FAIL"
-    else
-        echo "OK"
-    fi
+    check_connection_to_port \
+        "mlat-client" \
+        "$BEASTHOST" \
+        "$BEASTPORT" \
+        "mlat-client connected to $BEASTHOST:$BEASTPORT"
 
-    # check mlat-client to pw-feeder connection
-    echo -n "mlat-client connected to pw-client ($MLATSERVERHOST:$MLATSERVERPORT): "
-    if ! ss --tcp --processes state established dst "$MLATSERVERHOST" \&\& dport "$MLATSERVERPORT" 2>/dev/null| grep -q mlat-client; then
-        EXITCODE=1
-        echo "FAIL"
-    else
-        echo "OK"
-    fi
+    check_connection_to_port \
+        "mlat-client" \
+        "$MLATSERVERHOST" \
+        "$MLATSERVERPORT" \
+        "mlat-client connected to pw-client ($MLATSERVERHOST:$MLATSERVERPORT)"
 
-    # check mlat-client to pw-feeder connection
-    echo -n "pw-feeder connected to mlat-client: "
-    if ! ss --tcp --processes state established src "$MLATSERVERHOST" \&\& sport "$MLATSERVERPORT" 2>/dev/null| grep -q pw-feeder; then
-        EXITCODE=1
-        echo "FAIL"
-    else
-        echo "OK"
-    fi
+    check_listening_on_sport \
+        "pw-feeder" \
+        "$MLATSERVERPORT" \
+        "pw-feeder connected to mlat-client"
 
-    # check pw-feeder to plane.watch MLAT connection
-    echo -n "pw-feeder connected to $PW_MLAT_ENDPOINT: "
-    if ! ss --tcp --processes state established dst "$PW_MLAT_ENDPOINT" 2>/dev/null| grep -q pw-feeder; then
-        EXITCODE=1
-        echo "FAIL"
-    else
-        echo "OK"
-    fi
+    PW_MLAT_HOST=$(extract_host "$PW_MLAT_ENDPOINT")
+    PW_MLAT_PORT=$(extract_port "$PW_MLAT_ENDPOINT")
 
+    check_connection_to_port \
+        "pw-feeder" \
+        "$PW_MLAT_HOST" \
+        "$PW_MLAT_PORT" \
+        "pw-feeder connected to $PW_MLAT_ENDPOINT"
 fi
 
 exit "$EXITCODE"
