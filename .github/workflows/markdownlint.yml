@@ -10,6 +10,10 @@ on:
       - '**.md'
       - '**.MD'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   markdownlint:
     name: Run markdownlint against markdown files

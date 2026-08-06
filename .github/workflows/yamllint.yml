@@ -8,6 +8,9 @@ on:
       # only run when yaml files are updated
     paths:
       - '**.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   yamllint:

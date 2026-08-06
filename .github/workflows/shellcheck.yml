@@ -5,7 +5,10 @@ on:
   pull_request:
     branches:
       - main
-      # only run these if markdown files are updated
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   shellcheck:
