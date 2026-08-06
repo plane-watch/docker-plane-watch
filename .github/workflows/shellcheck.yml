@@ -17,6 +17,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v7
+      - name: Run healthcheck regression tests
+        shell: bash
+        run: ./tests/healthcheck.sh
       - name: Pull koalaman/shellcheck:stable Image
         run: docker pull koalaman/shellcheck:stable
       - name: Run Shellcheck against shell scripts
