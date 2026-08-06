@@ -257,7 +257,13 @@ LABEL org.opencontainers.image.title="Plane Watch feeder" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
       org.opencontainers.image.version="${IMAGE_VERSION}"
 ENTRYPOINT ["/init"]
-HEALTHCHECK --interval=60s --timeout=15s --start-period=60s --start-interval=5s --retries=3 CMD ["bash", "/scripts/healthcheck.sh"]
+HEALTHCHECK \
+    --interval=60s \
+    --timeout=15s \
+    --start-period=15m \
+    --start-interval=30s \
+    --retries=3 \
+    CMD ["bash", "/scripts/healthcheck.sh"]
 
 # Expose metrics port
 EXPOSE 2112
