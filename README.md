@@ -2,7 +2,7 @@
 
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/planewatch/plane-watch/latest_amd64) [![Discord](https://img.shields.io/discord/207038656311984139)](https://discord.gg/QjKdHDFgkj)
 
-Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with `readsb`/`dump1090` or another BEAST provider. Builds and runs on x86, x86_64, arm32v6, arm32v7 & arm64v8.
+Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with `readsb`/`dump1090` or another BEAST provider. Builds and runs on x86_64, arm/v7 & arm64.
 
 The container pulls ADS-B data from a BEAST provider and sends data to [plane.watch](https://plane.watch/).
 
