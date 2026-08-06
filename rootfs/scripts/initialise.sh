@@ -53,11 +53,6 @@ warning() {
   printf '[init] WARNING: %s\n' "$*" >&2
 }
 
-# If troubleshooting:
-if is_true "${DEBUG_LOGGING:-false}"; then
-  set -x
-fi
-
 printf '[init] Setting timezone to %s...\n' "$TZ"
 
 # Set up timezone
@@ -71,12 +66,19 @@ fi
 
 printf '[init] Checking environment variables...\n'
 
-# Check required configuration.
-if [[ -z "$BEASTHOST" ]]; then
-  error "BEASTHOST environment variable is not set"
-fi
+# Check the API key before enabling shell tracing so it can never appear in
+# debug output. The value is not referenced again in this script.
 if [[ -z "$API_KEY" ]]; then
   error "API_KEY environment variable is not set"
+fi
+
+if is_true "${DEBUG_LOGGING:-false}"; then
+  set -x
+fi
+
+# Check the remaining required configuration.
+if [[ -z "$BEASTHOST" ]]; then
+  error "BEASTHOST environment variable is not set"
 fi
 
 # Validate the ports consumed by the services and health check.

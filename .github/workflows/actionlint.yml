@@ -7,8 +7,10 @@ on:
     branches:
       - main
     paths:
+      - '.github/scripts/**/*.sh'
       - '.github/workflows/**/*.yml'
       - '.github/workflows/**/*.yaml'
+      - 'tests/sanitize-issue.sh'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Test issue sanitization
+        run: tests/sanitize-issue.sh
       - name: Run actionlint
         uses: docker://rhysd/actionlint:1.7.12
         with:
