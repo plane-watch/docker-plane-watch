@@ -66,4 +66,4 @@ exec /opt/mlat-client/bin/mlat-client \
   --results "beast,listen,30105" \
   --server "$MLAT_SERVER" \
   --user "$API_KEY" \
-  2>&1
+  > >(sed -u 's/^/[mlat-client] /') 2>&1
