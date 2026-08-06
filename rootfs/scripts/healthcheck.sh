@@ -3,6 +3,13 @@
 
 set -uo pipefail
 
+# Both monitored services run as nobody. In this container, ss only exposes
+# process metadata for sockets owned by the caller's effective user, so match
+# the service user before performing the process-aware connection checks.
+if (( EUID == 0 )); then
+  exec /command/s6-setuidgid nobody "$0" "$@"
+fi
+
 EXITCODE=0
 METRICS_STATE=unknown
 METRICS_OUTPUT=
