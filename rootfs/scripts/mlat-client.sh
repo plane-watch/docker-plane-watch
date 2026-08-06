@@ -1,41 +1,69 @@
 #!/command/with-contenv bash
-#shellcheck shell=bash
+# shellcheck shell=bash
 
-# If mlat enabled...
-if [[ "${ENABLE_MLAT,,}" == "true" ]]; then
+set -uo pipefail
 
-    # Make sure we have the needed env vars
-    if [[ -n "$LAT" ]] && [[ -n "$LONG" ]] && [[ -n "$ALT" ]]; then
-    
-        # shellcheck disable=SC2015
-        [[ -z "${MLAT_DATASOURCE}" ]] && MLAT_DATASOURCE="${BEASTHOST}:${BEASTPORT}" || true
+ENABLE_MLAT="${ENABLE_MLAT:-true}"
+LAT="${LAT:-}"
+LONG="${LONG:-}"
+ALT="${ALT:-}"
+MLAT_DATASOURCE="${MLAT_DATASOURCE:-}"
+BEASTHOST="${BEASTHOST:-}"
+BEASTPORT="${BEASTPORT:-30005}"
+MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-beast}"
+MLATSERVERHOST="${MLATSERVERHOST:-127.0.0.1}"
+MLATSERVERPORT="${MLATSERVERPORT:-12346}"
+API_KEY="${API_KEY:-}"
 
-        # give other stuff some time to come up
-        sleep 5
+ENABLE_MLAT="${ENABLE_MLAT//$'\r'/}"
+LAT="${LAT//$'\r'/}"
+LONG="${LONG//$'\r'/}"
+ALT="${ALT//$'\r'/}"
+MLAT_DATASOURCE="${MLAT_DATASOURCE//$'\r'/}"
+BEASTHOST="${BEASTHOST//$'\r'/}"
+BEASTPORT="${BEASTPORT//$'\r'/}"
+MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE//$'\r'/}"
+MLATSERVERHOST="${MLATSERVERHOST//$'\r'/}"
+MLATSERVERPORT="${MLATSERVERPORT//$'\r'/}"
+API_KEY="${API_KEY//$'\r'/}"
 
-        # Launch mlat-client
-        # shellcheck disable=SC2016
-        /usr/local/bin/mlat-client \
-            --input-type "$MLAT_INPUT_TYPE" \
-            --input-connect "${MLAT_DATASOURCE}" \
-            --lat "$LAT" \
-            --lon "$LONG" \
-            --alt "${ALT}" \
-            --results "beast,listen,30105" \
-            --server "${MLATSERVERHOST}:${MLATSERVERPORT}" \
-            --user "${API_KEY}" \
-        2>&1 \
-        | stdbuf -o0 sed --unbuffered '/^$/d' \
-        | stdbuf -o0 sed --unbuffered '/^        .*/d' \
-        | stdbuf -o0 awk '{print "[mlat-client] " $0}'
+is_true() {
+  [[ "$1" =~ ^[Tt][Rr][Uu][Ee]$ ]]
+}
 
-    else
+format_host_port() {
+  local host=$1
+  local port=$2
+  if [[ "$host" == *:* && "$host" != \[*\] ]]; then
+    printf '[%s]:%s\n' "$host" "$port"
+  else
+    printf '%s:%s\n' "$host" "$port"
+  fi
+}
 
-        sleep infinity
-
-    fi
-
-# If not enabled, sleep forever
-else
-    sleep infinity
+if ! is_true "$ENABLE_MLAT"; then
+  printf '[mlat-client] MLAT is disabled\n'
+  exec sleep infinity
 fi
+
+if [[ -z "$LAT" || -z "$LONG" || -z "$ALT" ]]; then
+  printf '[mlat-client] MLAT is disabled because LAT, LONG, or ALT is missing\n'
+  exec sleep infinity
+fi
+
+if [[ -z "$MLAT_DATASOURCE" ]]; then
+  MLAT_DATASOURCE=$(format_host_port "$BEASTHOST" "$BEASTPORT")
+fi
+MLAT_SERVER=$(format_host_port "$MLATSERVERHOST" "$MLATSERVERPORT")
+
+# Replace the wrapper with mlat-client so s6 supervises and signals the real process.
+exec /opt/mlat-client/bin/mlat-client \
+  --input-type "$MLAT_INPUT_TYPE" \
+  --input-connect "$MLAT_DATASOURCE" \
+  --lat "$LAT" \
+  --lon "$LONG" \
+  --alt "$ALT" \
+  --results "beast,listen,30105" \
+  --server "$MLAT_SERVER" \
+  --user "$API_KEY" \
+  > >(sed -u 's/^/[mlat-client] /') 2>&1

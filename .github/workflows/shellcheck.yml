@@ -1,11 +1,14 @@
 ---
-name: Linting (Markdown)
+name: Linting (Shell)
 
 on:
   pull_request:
     branches:
       - main
-      # only run these if markdown files are updated
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   shellcheck:
@@ -14,7 +17,26 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v7
+      - name: Run initialisation regression tests
+        shell: bash
+        run: ./tests/initialise.sh
+      - name: Run healthcheck regression tests
+        shell: bash
+        run: ./tests/healthcheck.sh
       - name: Pull koalaman/shellcheck:stable Image
         run: docker pull koalaman/shellcheck:stable
       - name: Run Shellcheck against shell scripts
-        run: docker run --rm -i -v "$PWD:/mnt" koalaman/shellcheck:stable $(find . -type f -exec grep -m1 -l -E '^#!.*sh.*' {} \; | grep -v '/.git/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHELL_SCRIPTS=()
+          while IFS= read -r -d '' FILE; do
+            if head -n 1 "${FILE}" | grep --quiet --extended-regexp '^#!.*sh.*'; then
+              SHELL_SCRIPTS+=("${FILE}")
+            fi
+          done < <(find . -type f ! -path './.git/*' -print0)
+          docker run --rm -i \
+            --volume "${PWD}:/mnt" \
+            --workdir /mnt \
+            koalaman/shellcheck:stable \
+            "${SHELL_SCRIPTS[@]}"

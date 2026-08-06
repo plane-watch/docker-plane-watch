@@ -1,0 +1,133 @@
+---
+name: Troubleshooting request
+description: Report a problem with the Plane Watch feeder container
+title: "[Troubleshooting]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+
+        Never post your Plane Watch API key. The repository automatically removes UUID-shaped API keys from
+        issue bodies and comments as a safety net, but automatic removal is not instantaneous. If a key is exposed,
+        revoke it and generate a replacement in ATC immediately.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem description
+      description: Tell us what is happening and when it started.
+      placeholder: Include the symptoms, relevant timing, and any recent configuration changes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: Tell us what you expected to happen.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment method
+      options:
+        - Docker Compose
+        - docker run
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostic output
+      description: |
+        Run the complete command block below on the Docker host, then paste its output here.
+
+        The environment command redacts `API_KEY`, `LAT`, and `LONG`. The process command shows process names without
+        command-line arguments because the MLAT client command line contains the API key and receiver coordinates.
+
+        ```bash
+        (
+          printf '\n=== Docker version ===\n'
+          docker version --format 'Client: {{.Client.Version}}
+        Server: {{.Server.Version}}
+        Server OS/architecture: {{.Server.Os}}/{{.Server.Arch}}'
+
+          printf '\n=== Container and image ===\n'
+          docker inspect planewatch --format 'Image: {{.Config.Image}}
+        Image ID: {{.Image}}
+        Created: {{.Created}}
+        Started: {{.State.StartedAt}}
+        State: {{.State.Status}}
+        Exit code: {{.State.ExitCode}}
+        OOM killed: {{.State.OOMKilled}}
+        Restart count: {{.RestartCount}}
+        Restart policy: {{.HostConfig.RestartPolicy.Name}}'
+
+          printf '\n=== pw-feeder version ===\n'
+          docker exec planewatch pw-feeder --version
+
+          printf '\n=== Environment (API key and location redacted) ===\n'
+          printf '%s\n' 'IMPORTANT: Confirm API_KEY, LAT, and LONG are shown as [REDACTED] before pasting.'
+          docker inspect planewatch | jq -r '
+            .[0].Config.Env[]
+            | if startswith("API_KEY=") then "API_KEY=[REDACTED]"
+              elif startswith("LAT=") then "LAT=[REDACTED]"
+              elif startswith("LONG=") then "LONG=[REDACTED]"
+              else .
+              end
+          ' | sort
+
+          printf '\n=== Container networks ===\n'
+          docker inspect planewatch | jq '.[0] | {
+            network_mode: .HostConfig.NetworkMode,
+            networks: .NetworkSettings.Networks
+          }'
+
+          printf '\n=== First 30 log lines ===\n'
+          printf '%s\n' 'WARNING: Redact any API-key UUID and LAT/LONG values from these logs before pasting.'
+          docker logs planewatch 2>&1 | head -n 30
+
+          printf '\n=== Last 30 log lines ===\n'
+          printf '%s\n' 'WARNING: Redact any API-key UUID and LAT/LONG values from these logs before pasting.'
+          docker logs --tail 30 planewatch 2>&1
+
+          printf '\n=== Latest health check ===\n'
+          docker inspect planewatch | jq -r \
+            '.[0].State.Health | "Status: \(.Status)\n\n\(.Log[-1].Output)"'
+
+          printf '\n=== TCP sockets ===\n'
+          docker exec --user nobody planewatch ss -anpt
+
+          printf '\n=== Processes ===\n'
+          docker top planewatch -eo pid,user,comm
+
+          printf '\n=== s6 services ===\n'
+          docker exec planewatch /command/s6-rc -a list
+
+          printf '\n=== BEAST source DNS ===\n'
+          docker exec planewatch bash -c 'getent ahosts "$BEASTHOST"'
+        ) 2>&1
+        ```
+      placeholder: Paste the complete diagnostic output here.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional information
+      description: Add anything else that may help reproduce or diagnose the problem.
+
+  - type: checkboxes
+    id: sensitive-data
+    attributes:
+      label: Sensitive data
+      options:
+        - label: I have checked that my API key and precise LAT/LONG are not present in this report.
+          required: true

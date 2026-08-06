@@ -1,0 +1,36 @@
+---
+name: Sanitize issue output
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+  issue_comment:
+    types:
+      - created
+      - edited
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sanitize-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  redact:
+    name: Remove API keys and ANSI colour sequences
+    if: github.event_name == 'issues' || github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Sanitize issue text
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/sanitize-issue.sh

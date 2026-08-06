@@ -3,21 +3,30 @@
 version: 2
 
 updates:
-
-  # Maintain dependencies for Docker
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: daily
-      time: "00:00"
-      timezone: "Etc/UTC"
-    assignees:
-      - "mikenye"
-
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: docker
     directory: "/"
     schedule:
       interval: "daily"
+      time: "07:00"
+      timezone: "Australia/Perth"
     assignees:
       - "mikenye"
+    groups:
+      docker-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "07:00"
+      timezone: "Australia/Perth"
+    assignees:
+      - "mikenye"
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
