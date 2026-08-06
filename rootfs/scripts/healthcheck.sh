@@ -3,13 +3,6 @@
 
 set -uo pipefail
 
-# Both monitored services run as nobody. In this container, ss only exposes
-# process metadata for sockets owned by the caller's effective user, so match
-# the service user before performing the process-aware connection checks.
-if (( EUID == 0 )); then
-  exec /command/s6-setuidgid nobody /usr/bin/bash "$0" "$@"
-fi
-
 EXITCODE=0
 METRICS_STATE=unknown
 METRICS_OUTPUT=
@@ -248,62 +241,79 @@ check_listening_on_sport() {
   return 1
 }
 
-check_atc_status "adsb" "ATC reports healthy ADS-B feed"
+run_healthchecks() {
+  check_atc_status "adsb" "ATC reports healthy ADS-B feed"
 
-check_connection_to_port \
-  "pw-feeder" \
-  "$BEASTHOST" \
-  "$BEASTPORT" \
-  "pw-feeder connected to $(format_host_port "$BEASTHOST" "$BEASTPORT")"
+  check_connection_to_port \
+    "pw-feeder" \
+    "$BEASTHOST" \
+    "$BEASTPORT" \
+    "pw-feeder connected to $(format_host_port "$BEASTHOST" "$BEASTPORT")"
 
-PW_BEAST_HOST=$(extract_host "$PW_BEAST_ENDPOINT")
-PW_BEAST_PORT=$(extract_port "$PW_BEAST_ENDPOINT")
+  PW_BEAST_HOST=$(extract_host "$PW_BEAST_ENDPOINT")
+  PW_BEAST_PORT=$(extract_port "$PW_BEAST_ENDPOINT")
 
-check_connection_to_port \
-  "pw-feeder" \
-  "$PW_BEAST_HOST" \
-  "$PW_BEAST_PORT" \
-  "pw-feeder connected to $PW_BEAST_ENDPOINT"
+  check_connection_to_port \
+    "pw-feeder" \
+    "$PW_BEAST_HOST" \
+    "$PW_BEAST_PORT" \
+    "pw-feeder connected to $PW_BEAST_ENDPOINT"
 
-MLAT_ACTIVE=false
-if is_true "$ENABLE_MLAT" && [[ -n "$LAT" && -n "$LONG" && -n "$ALT" ]]; then
-  MLAT_ACTIVE=true
-fi
-
-if is_true "$MLAT_ACTIVE"; then
-  check_atc_status "mlat" "ATC reports healthy MLAT feed"
-
-  if [[ -z "$MLAT_DATASOURCE" ]]; then
-    MLAT_DATASOURCE=$(format_host_port "$BEASTHOST" "$BEASTPORT")
+  MLAT_ACTIVE=false
+  if is_true "$ENABLE_MLAT" && [[ -n "$LAT" && -n "$LONG" && -n "$ALT" ]]; then
+    MLAT_ACTIVE=true
   fi
-  MLAT_DATA_HOST=$(extract_host "$MLAT_DATASOURCE")
-  MLAT_DATA_PORT=$(extract_port "$MLAT_DATASOURCE")
 
-  check_connection_to_port \
-    "mlat-client" \
-    "$MLAT_DATA_HOST" \
-    "$MLAT_DATA_PORT" \
-    "mlat-client connected to $MLAT_DATASOURCE"
+  if is_true "$MLAT_ACTIVE"; then
+    check_atc_status "mlat" "ATC reports healthy MLAT feed"
 
-  check_connection_to_port \
-    "mlat-client" \
-    "$MLATSERVERHOST" \
-    "$MLATSERVERPORT" \
-    "mlat-client connected to pw-feeder ($(format_host_port "$MLATSERVERHOST" "$MLATSERVERPORT"))"
+    if [[ -z "$MLAT_DATASOURCE" ]]; then
+      MLAT_DATASOURCE=$(format_host_port "$BEASTHOST" "$BEASTPORT")
+    fi
+    MLAT_DATA_HOST=$(extract_host "$MLAT_DATASOURCE")
+    MLAT_DATA_PORT=$(extract_port "$MLAT_DATASOURCE")
 
-  check_listening_on_sport \
-    "pw-feeder" \
-    "$MLATSERVERPORT" \
-    "pw-feeder accepted the mlat-client connection"
+    check_connection_to_port \
+      "mlat-client" \
+      "$MLAT_DATA_HOST" \
+      "$MLAT_DATA_PORT" \
+      "mlat-client connected to $MLAT_DATASOURCE"
 
-  PW_MLAT_HOST=$(extract_host "$PW_MLAT_ENDPOINT")
-  PW_MLAT_PORT=$(extract_port "$PW_MLAT_ENDPOINT")
+    check_connection_to_port \
+      "mlat-client" \
+      "$MLATSERVERHOST" \
+      "$MLATSERVERPORT" \
+      "mlat-client connected to pw-feeder ($(format_host_port "$MLATSERVERHOST" "$MLATSERVERPORT"))"
 
-  check_connection_to_port \
-    "pw-feeder" \
-    "$PW_MLAT_HOST" \
-    "$PW_MLAT_PORT" \
-    "pw-feeder connected to $PW_MLAT_ENDPOINT"
+    check_listening_on_sport \
+      "pw-feeder" \
+      "$MLATSERVERPORT" \
+      "pw-feeder accepted the mlat-client connection"
+
+    PW_MLAT_HOST=$(extract_host "$PW_MLAT_ENDPOINT")
+    PW_MLAT_PORT=$(extract_port "$PW_MLAT_ENDPOINT")
+
+    check_connection_to_port \
+      "pw-feeder" \
+      "$PW_MLAT_HOST" \
+      "$PW_MLAT_PORT" \
+      "pw-feeder connected to $PW_MLAT_ENDPOINT"
+  fi
+
+  return "$EXITCODE"
+}
+
+main() {
+  # Both monitored services run as nobody. In this container, ss only exposes
+  # process metadata for sockets owned by the caller's effective user, so match
+  # the service user before performing the process-aware connection checks.
+  if (( EUID == 0 )); then
+    exec /command/s6-setuidgid nobody /usr/bin/bash "$0" "$@"
+  fi
+
+  run_healthchecks
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
 fi
-
-exit "$EXITCODE"
