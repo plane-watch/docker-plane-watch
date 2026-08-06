@@ -92,7 +92,7 @@ RUN --mount=type=cache,id=pw-feeder-src-${TARGETARCH}${TARGETVARIANT},target=/sr
 
 FROM debian_base AS mlat_client_builder
 ARG MLAT_CLIENT_BRANCH
-ARG MLAT_CLIENT_REF=fe70767be859100176983b948140046b6ecdd34a
+ARG MLAT_CLIENT_REF=28ae4f7409c9dfddd2bb8984baadce5d31fdc8e3
 ARG TARGETARCH
 ARG TARGETVARIANT
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -109,7 +109,7 @@ RUN --mount=type=cache,id=apt-cache-${TARGETARCH}${TARGETVARIANT},target=/var/ca
       python3-venv
 RUN --mount=type=cache,id=mlat-client-src-${TARGETARCH}${TARGETVARIANT},target=/src/mlat-client,sharing=locked --mount=type=cache,id=mlat-client-pip-${TARGETARCH}${TARGETVARIANT},target=/root/.cache/pip,sharing=locked \
     set -x && \
-    MLAT_CLIENT_REPOSITORY=https://github.com/mutability/mlat-client.git && \
+    MLAT_CLIENT_REPOSITORY=https://github.com/wiedehopf/mlat-client.git && \
     if [[ ! -d /src/mlat-client/.git ]]; then \
       find /src/mlat-client -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + && \
       git -C /src/mlat-client init && \
@@ -130,9 +130,9 @@ RUN --mount=type=cache,id=mlat-client-src-${TARGETARCH}${TARGETVARIANT},target=/
     git -C /src/mlat-client checkout --detach --force "${TARGET_REF}" && \
     git -C /src/mlat-client clean -ffdx && \
     python3 -m venv /opt/mlat-client && \
-    /opt/mlat-client/bin/pip install /src/mlat-client && \
+    /opt/mlat-client/bin/pip install --use-pep517 /src/mlat-client && \
     /opt/mlat-client/bin/mlat-client --help && \
-    /opt/mlat-client/bin/python -m pip uninstall --yes pip setuptools wheel
+    /opt/mlat-client/bin/python -m pip uninstall --yes pip setuptools
 
 
 FROM debian_base AS s6_overlay_builder
