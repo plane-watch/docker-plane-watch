@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly command_name="${0##*/}"
+
+require_variable() {
+    local variable_name="$1"
+
+    if [[ -z "${!variable_name:-}" ]]; then
+        printf '%s: %s must be set\n' "${command_name}" "${variable_name}" >&2
+        exit 2
+    fi
+}
+
+validate_port() {
+    local port="$1"
+
+    if [[ ! "${port}" =~ ^[0-9]+$ ]] || ((10#${port} < 1 || 10#${port} > 65535)); then
+        printf '%s: BEASTPORT must be a number between 1 and 65535\n' "${command_name}" >&2
+        exit 2
+    fi
+}
+
+require_variable BEASTHOST
+require_variable BEASTPORT
+validate_port "${BEASTPORT}"
+
+viewadsb_args=(
+    --net-bind-address="${BEASTHOST}"
+    --net-bo-port="${BEASTPORT}"
+)
+
+if [[ -n "${LAT:-}" || -n "${LONG:-}" ]]; then
+    require_variable LAT
+    require_variable LONG
+    viewadsb_args+=(--lat="${LAT}" --lon="${LONG}")
+fi
+
+exec viewadsb "${viewadsb_args[@]}" "$@"

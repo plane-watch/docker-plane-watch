@@ -60,7 +60,13 @@ Where:
 You can test to ensure your container is seeing ADS-B data by running:
 
 ```
-docker exec -it planewatch viewadsb
+docker exec -it planewatch showadsb
+```
+
+To view the MLAT results being fed back into the container, run:
+
+```
+docker exec -it planewatch showmlat
 ```
 
 ## Basic Up-and-Running with Docker Compose
@@ -98,7 +104,13 @@ Where:
 You can test to ensure your container is seeing ADS-B data by running:
 
 ```
-docker exec -it planewatch viewadsb
+docker exec -it planewatch showadsb
+```
+
+To view the MLAT results being fed back into the container, run:
+
+```
+docker exec -it planewatch showmlat
 ```
 
 ## Runtime Environment Variables

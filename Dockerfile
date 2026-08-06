@@ -237,6 +237,8 @@ RUN \
     test -x /scripts/initialise.sh && \
     test -x /scripts/mlat-client.sh && \
     test -x /scripts/pw-feeder.sh && \
+    test -x /usr/local/bin/showadsb && \
+    test -x /usr/local/bin/showmlat && \
     find /var/log -type f -exec truncate --size=0 {} \; && \
     # Simple tests: check CA certs: \
     openssl s_client -verify_return_error -connect "${PW_BEAST_ENDPOINT}" && \
