@@ -5,9 +5,11 @@ on:
   pull_request:
     branches:
       - main
-      # only run when yaml files are updated
+      # Only run when YAML files are updated.
     paths:
       - '**.yml'
+      - '**.yaml'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -27,3 +29,5 @@ jobs:
               line-length:
                 max: 120
                 level: warning
+              truthy:
+                check-keys: false

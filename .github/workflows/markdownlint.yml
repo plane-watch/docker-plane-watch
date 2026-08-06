@@ -24,4 +24,15 @@ jobs:
       - name: Pull markdownlint/markdownlint:latest Image
         run: docker pull markdownlint/markdownlint:latest
       - name: Run markdownlint against *.md files
-        run: docker run --rm -i -v "$(pwd)":/workdir --workdir /workdir markdownlint/markdownlint:latest --rules ~MD013,~MD033,~MD026,~MD002,~MD022 $(find . -type f -iname '*.md' ! -iname "license.md" | grep -v '/.git/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t MARKDOWN_FILES < <(
+            find . -type f -iname '*.md' ! -iname 'license.md' ! -path './.git/*' -print0
+          )
+          docker run --rm -i \
+            --volume "${PWD}:/workdir" \
+            --workdir /workdir \
+            markdownlint/markdownlint:latest \
+            --rules ~MD013,~MD033,~MD026,~MD002,~MD022 \
+            "${MARKDOWN_FILES[@]}"
