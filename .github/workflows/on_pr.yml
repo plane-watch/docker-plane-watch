@@ -26,6 +26,11 @@ concurrency:
 
 permissions:
   contents: read
+  packages: write
+  pull-requests: write
+
+env:
+  GHCR_IMAGE: ghcr.io/plane-watch/docker-plane-watch
 
 jobs:
   prepare:
@@ -110,6 +115,18 @@ jobs:
             cache_scope: armv7
             qemu_platform: arm
     steps:
+      - name: Login to GHCR
+        if: >-
+          ${{
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          }}
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up QEMU
         if: ${{ matrix.qemu_platform != '' }}
         uses: docker/setup-qemu-action@v4
@@ -120,6 +137,11 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build ${{ matrix.platform }} (no push)
+        if: >-
+          ${{
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name != github.repository
+          }}
         uses: docker/build-push-action@v7
         with:
           platforms: ${{ matrix.platform }}
@@ -133,3 +155,182 @@ jobs:
             IMAGE_VERSION=${{ needs.prepare.outputs.pw_feeder_version }}
           cache-from: type=gha,scope=plane-watch-${{ matrix.cache_scope }}
           cache-to: type=gha,scope=plane-watch-${{ matrix.cache_scope }},mode=max
+
+      - name: Build and push ${{ matrix.platform }} by digest
+        if: >-
+          ${{
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          }}
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            READSB_PROTOBUF_REF=${{ needs.prepare.outputs.readsb_ref }}
+            PW_FEEDER_REF=${{ needs.prepare.outputs.pw_feeder_ref }}
+            PW_FEEDER_VERSION=${{ needs.prepare.outputs.pw_feeder_version }}
+            MLAT_CLIENT_REF=${{ needs.prepare.outputs.mlat_client_ref }}
+            IMAGE_REVISION=${{ github.event.pull_request.head.sha }}
+            IMAGE_VERSION=${{ needs.prepare.outputs.pw_feeder_version }}
+          cache-from: type=gha,scope=plane-watch-${{ matrix.cache_scope }}
+          cache-to: type=gha,scope=plane-watch-${{ matrix.cache_scope }},mode=max
+          tags: ${{ env.GHCR_IMAGE }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export image digest
+        if: ${{ steps.build.outcome == 'success' }}
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${IMAGE_DIGEST#sha256:}"
+
+      - name: Upload image digest
+        if: ${{ steps.build.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: digest-${{ matrix.cache_scope }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish multi-platform PR image
+    if: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      }}
+    needs:
+      - prepare
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: digest-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Create GHCR manifest list
+        id: manifest
+        shell: bash
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          mapfile -t DIGEST_FILES < <(find "${RUNNER_TEMP}/digests" -maxdepth 1 -type f -print | sort)
+          if [[ "${#DIGEST_FILES[@]}" -ne 3 ]]; then
+            echo "Expected 3 image digests, found ${#DIGEST_FILES[@]}" >&2
+            exit 1
+          fi
+
+          IMAGES=()
+          for DIGEST_FILE in "${DIGEST_FILES[@]}"; do
+            IMAGES+=("${GHCR_IMAGE}@sha256:$(basename "${DIGEST_FILE}")")
+          done
+
+          PR_TAG="pr_${PR_NUMBER}"
+          REVISION_TAG="${PR_TAG}-${PR_HEAD_SHA:0:7}"
+          docker buildx imagetools create \
+            --tag "${GHCR_IMAGE}:${PR_TAG}" \
+            --tag "${GHCR_IMAGE}:${REVISION_TAG}" \
+            "${IMAGES[@]}"
+
+          {
+            echo "pr_tag=${PR_TAG}"
+            echo "revision_tag=${REVISION_TAG}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Inspect published image
+        shell: bash
+        env:
+          PR_TAG: ${{ steps.manifest.outputs.pr_tag }}
+          REVISION_TAG: ${{ steps.manifest.outputs.revision_tag }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "${GHCR_IMAGE}:${PR_TAG}"
+          docker buildx imagetools inspect "${GHCR_IMAGE}:${REVISION_TAG}"
+
+      - name: Add preview image to job summary
+        shell: bash
+        env:
+          PR_TAG: ${{ steps.manifest.outputs.pr_tag }}
+          REVISION_TAG: ${{ steps.manifest.outputs.revision_tag }}
+        run: |
+          {
+            echo '### PR preview image'
+            echo
+            echo '`docker pull '"${GHCR_IMAGE}:${PR_TAG}"'`'
+            echo
+            echo 'Commit-specific tag: `'"${GHCR_IMAGE}:${REVISION_TAG}"'`'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Update PR preview image comment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TAG: ${{ steps.manifest.outputs.pr_tag }}
+          REVISION_TAG: ${{ steps.manifest.outputs.revision_tag }}
+        run: |
+          set -euo pipefail
+
+          COMMENT_MARKER='<!-- docker-plane-watch-pr-preview -->'
+          SHORT_SHA="${PR_HEAD_SHA:0:7}"
+          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${PR_HEAD_SHA}"
+          BUILD_MESSAGE="The multi-architecture preview image has been built"
+          BUILD_MESSAGE+=" for commit [\`${SHORT_SHA}\`](${COMMIT_URL})."
+          printf -v COMMENT_BODY '%s\n' \
+            "${COMMENT_MARKER}" \
+            '### PR preview image' \
+            '' \
+            "${BUILD_MESSAGE}" \
+            '' \
+            '```console' \
+            "docker pull ${GHCR_IMAGE}:${PR_TAG}" \
+            '```' \
+            '' \
+            'Commit-specific image:' \
+            '' \
+            '```console' \
+            "docker pull ${GHCR_IMAGE}:${REVISION_TAG}" \
+            '```'
+
+          COMMENTS_ENDPOINT="repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+          COMMENT_QUERY='.[] | select(.user.login == "github-actions[bot]")'
+          COMMENT_QUERY+=' | select(.body | contains('
+          COMMENT_QUERY+='"<!-- docker-plane-watch-pr-preview -->")) | .id'
+          COMMENT_ID="$(
+            gh api --paginate \
+              "${COMMENTS_ENDPOINT}?per_page=100" \
+              --jq "${COMMENT_QUERY}" |
+              tail -n 1
+          )"
+
+          if [[ -n "${COMMENT_ID}" ]]; then
+            gh api --method PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" \
+              --raw-field body="${COMMENT_BODY}" >/dev/null
+          else
+            gh api --method POST \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --raw-field body="${COMMENT_BODY}" >/dev/null
+          fi
