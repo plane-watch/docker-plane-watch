@@ -2,9 +2,9 @@
 
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/planewatch/plane-watch/latest_amd64) [![Discord](https://img.shields.io/discord/207038656311984139)](https://discord.gg/QjKdHDFgkj)
 
-Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with [mikenye/readsb-protobuf](https://hub.docker.com/r/mikenye/readsb-protobuf) or another BEAST provider. Builds and runs on x86, x86_64, arm32v6, arm32v7 & arm64v8.
+Docker container to feed ADS-B data into [plane.watch](https://plane.watch/). Designed to work in tandem with `readsb`/`dump1090` or another BEAST provider. Builds and runs on x86, x86_64, arm32v6, arm32v7 & arm64v8.
 
-The container pulls ADS-B data from a BEAST provider (and optionally ACARS/VDLM2 data from appropriate sources) and sends data to [plane.watch](https://plane.watch/).
+The container pulls ADS-B data from a BEAST provider and sends data to [plane.watch](https://plane.watch/).
 
 [plane.watch](https://plane.watch/) is a small group of friends and aviation enthusiasts who operate an ADS-B, ACARS and VDLM2 data collection and display service for the benefit of the general public. While we are primarily based in Australia, we welcome data contributions from all over the world. We are a non-commercial entity - no data is sold or filtered/blocked.
 
@@ -101,112 +101,6 @@ You can test to ensure your container is seeing ADS-B data by running:
 docker exec -it planewatch viewadsb
 ```
 
-<!-- ## Advanced Up-and-Running with Docker Compose, including ACARS/VDLM2
-
-[plane.watch](https://plane.watch) now supports receiving ACARS and VDLM2! If you have multiple SDRs and feel so inclined, we would love your ACARS & VDLM2 data.
-
-Here is an example configuration:
-
-```yaml
-  acarsdec:
-    image: ghcr.io/sdr-enthusiasts/docker-acarsdec:latest
-    tty: true
-    container_name: acarsdec
-    restart: always
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    environment:
-      - TZ=YOUR_TIMEZONE
-      - SERIAL=ACARS_SERIAL
-      - FREQUENCIES=YOUR_FREQUENCIES
-      - GAIN=YOUR_GAIN
-      - SERVER=acars_router
-      - SERVER_PORT=5550
-    depends_on:
-      - acars_router
-    tmpfs:
-      - /run:exec,size=64M
-      - /var/log
-
-  dumpvdl2:
-    image: ghcr.io/sdr-enthusiasts/docker-dumpvdl2:latest
-    tty: true
-    container_name: dumpvdl2
-    restart: always
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    environment:
-      - TZ=YOUR_TIMEZONE
-      - SERIAL=VDLM2_SERIAL
-      - FREQUENCIES=YOUR_FREQUENCIES
-      - GAIN=YOUR_GAIN
-      - SERVER=acars_router
-      - SERVER_PORT=5555
-      - ZMQ_MODE=server
-      - ZMQ_ENDPOINT=tcp://0.0.0.0:45555
-    depends_on:
-      - acars_router
-    tmpfs:
-      - /run:exec,size=64M
-      - /var/log
-
-  acars_router:
-    image: ghcr.io/sdr-enthusiasts/acars_router:latest
-    tty: true
-    container_name: acars_router
-    restart: always
-    environment:
-      - TZ=YOUR_TIMEZONE
-      - AR_SEND_UDP_ACARS=acarshub:5550
-      - AR_SEND_UDP_VDLM2=acarshub:5555
-      - AR_RECV_ZMQ_VDLM2=dumpvdl2:45555
-      - AR_OVERRIDE_STATION_NAME=YOUR_STATION_NAME
-    tmpfs:
-      - /run:exec,size=64M
-      - /var/log
-
-  planewatch:
-    image: planewatch/plane-watch:latest
-    tty: true
-    container_name: planewatch
-    restart: always
-    depends_on:
-      - readsb
-    environment:
-      - BEASTHOST=YOUR_BEASTHOST
-      - ACARS_HOST=acars_router
-      - VDLM2_HOST=acars_router
-      - TZ=YOUR_TIMEZONE
-      - API_KEY=YOUR_API_KEY
-      - LAT=YOUR_LATITUDE
-      - LONG=YOUR_LONGITUDE
-      - ALT=YOUR_ALTITUDE
-    tmpfs:
-      - /run:exec,size=64M
-      - /var/log
-```
-
-Where:
-
-* `YOUR_TIMEZONE` is your timezone in ["TZ database name" format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) (eg: `Australia/Perth`)
-* `YOUR_BEASTHOST` is the hostname, IP address or container name of a beast protocol provider (eg: `piaware`)
-* `YOUR_API_KEY` is your plane.watch feeder API Key
-* `YOUR_STATION_NAME` is the name of your station
-* `ACARS_SERIAL` the serial of your ACARS SDR
-* `VDLM2_SERIAL` the serial of your VDLM2 SDR
-* `YOUR_FREQUENCIES` the ACARS/VDLM2 frequencies
-* `YOUR_GAIN` the ACARS/VDLM2 gain
-* `YOUR_LATITUDE` is the latitude of your antenna (xx.xxxxx)
-* `YOUR_LONGITUDE` is the longitude of your antenna (xx.xxxxx)
-* `YOUR_ALTITUDE` is the your antenna altitude, and should be suffixed with either `m` or `ft`. If no suffix, will default to `m`.
-
-For more information on ACARS/VDLM2, please see:
-
-* [sdr-enthusiasts/docker-acarshub](https://github.com/sdr-enthusiasts/docker-acarshub/blob/main/README.md)
-* [sdr-enthusiasts/docker-acarsdec](https://github.com/sdr-enthusiasts/docker-acarsdec/blob/main/README.md)
-* [sdr-enthusiasts/docker-dumpvdl2](https://github.com/sdr-enthusiasts/docker-dumpvdl2/blob/main/README.md)
-* [sdr-enthusiasts/acars_router](https://github.com/sdr-enthusiasts/acars_router/blob/main/README.md) -->
-
 ## Runtime Environment Variables
 
 There are a series of available environment variables:
@@ -223,14 +117,14 @@ There are a series of available environment variables:
 | `MLAT_DATASOURCE` | Optional. IP/Hostname and port of an MLAT data source | `BEASTHOST:BEASTPORT` setting if omitted |
 | `TZ` | Optional. Your local timezone | `GMT` |
 
-<!-- | `ACARS_HOST` | Optional. IP, hostname or container name of a TCP ACARS source (eg: acars_router) | |
-| `ACARS_PORT` | Optional. TCP port number of TCP ACARS source (eg: acars_router) | `15550` |
-| `VDLM2_HOST` | Optional. IP, hostname or container name of a TCP VDLM2 source (eg: acars_router) | |
-| `VDLM2_PORT` | Optional. TCP port number of TCP VDLM2 source (eg: acars_router) | `15555` | -->
-
 ## Ports
 
-No ports are required to be mapped to this container.
+No ports are required to be mapped to this container, however the following ports are available:
+
+| TCP Port | Description                                                                                                                 |
+|----------|-----------------------------------------------------------------------------------------------------------------------------|
+| 2112     | Exposes Prometheus metrics for the pw-feeder binary.</br>These can then be accessed via `http://<dockerhost>:2112/metrics`. |
+| 30105    | Exposes MLAT results in BEAST protocol                                                                                      |
 
 ## Logging
 
@@ -242,7 +136,3 @@ Please feel free to:
 
 * [Open an issue on the project's GitHub](https://github.com/plane-watch/docker-plane-watch/issues).
 * [Join our Discord](https://discord.gg/QjKdHDFgkj) and say g'day.
-
-## Changelog
-
-See the [commit history](https://github.com/plane-watch/docker-plane-watch/commits/main) on GitHub.
