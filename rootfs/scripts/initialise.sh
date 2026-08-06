@@ -53,70 +53,89 @@ warning() {
   printf '[init] WARNING: %s\n' "$*" >&2
 }
 
-printf '[init] Setting timezone to %s...\n' "$TZ"
-
-# Set up timezone
-if [[ "$TZ" == /* || "$TZ" == *'..'* || ! -e "/usr/share/zoneinfo/$TZ" ]]; then
-  error "TZ contains an invalid timezone: $TZ"
-elif ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && printf '%s\n' "$TZ" > /etc/timezone; then
-  :
-else
-  error "could not configure timezone: $TZ"
-fi
-
-printf '[init] Checking environment variables...\n'
-
-# Check the API key before enabling shell tracing so it can never appear in
-# debug output. The value is not referenced again in this script.
-if [[ -z "$API_KEY" ]]; then
-  error "API_KEY environment variable is not set"
-fi
-
-if is_true "${DEBUG_LOGGING:-false}"; then
-  set -x
-fi
-
-# Check the remaining required configuration.
-if [[ -z "$BEASTHOST" ]]; then
-  error "BEASTHOST environment variable is not set"
-fi
-
-# Validate the ports consumed by the services and health check.
-if ! is_valid_port "$BEASTPORT"; then
-  error "BEASTPORT must be an integer between 1 and 65535"
-fi
-if ! is_valid_port "$MLATSERVERPORT"; then
-  error "MLATSERVERPORT must be an integer between 1 and 65535"
-fi
-if ! is_true "${PW_NOMETRICS:-false}" && ! is_valid_port "$PW_METRICSPORT"; then
-  error "PW_METRICSPORT must be an integer between 1 and 65535"
-fi
-
-if ! is_true "$ENABLE_MLAT" && ! is_false "$ENABLE_MLAT"; then
-  error "ENABLE_MLAT must be either true or false"
-fi
-if ! is_true "$PW_NOMETRICS" && ! is_false "$PW_NOMETRICS"; then
-  error "PW_NOMETRICS must be either true or false"
-fi
-
-# Missing coordinates disable MLAT without preventing ADS-B feeding.
-if is_true "$ENABLE_MLAT"; then
-  MISSING_MLAT_VARIABLES=()
-  [[ -n "$LAT" ]] || MISSING_MLAT_VARIABLES+=(LAT)
-  [[ -n "$LONG" ]] || MISSING_MLAT_VARIABLES+=(LONG)
-  [[ -n "$ALT" ]] || MISSING_MLAT_VARIABLES+=(ALT)
-  if (( ${#MISSING_MLAT_VARIABLES[@]} > 0 )); then
-    MISSING_MLAT_TEXT=$(IFS=,; printf '%s' "${MISSING_MLAT_VARIABLES[*]}")
-    warning "MLAT will remain disabled because these variables are missing: $MISSING_MLAT_TEXT"
+prepare_timezone() {
+  # Docker Compose list syntax preserves quotes placed after the equals sign
+  # (for example, TZ="Australia/Sydney"). Unwrap one matching pair so a valid
+  # timezone is not rejected because those quotes became part of the value.
+  if [[ "$TZ" == \"*\" || "$TZ" == \'*\' ]]; then
+    TZ="${TZ:1:${#TZ}-2}"
   fi
-fi
 
-# If any errors above are fatal, don't proceed starting the container
-if (( EXITCODE != 0 )); then
+  if [[ "$TZ" == /* || "$TZ" == *'..'* || ! -e "/usr/share/zoneinfo/$TZ" ]]; then
+    warning "TZ contains an invalid timezone: $TZ; falling back to GMT"
+    TZ=GMT
+  fi
+}
+
+main() {
+  prepare_timezone
+  printf '[init] Setting timezone to %s...\n' "$TZ"
+
+  # Set up timezone
+  if ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && printf '%s\n' "$TZ" > /etc/timezone; then
+    :
+  else
+    error "could not configure timezone: $TZ"
+  fi
+
+  printf '[init] Checking environment variables...\n'
+
+  # Check the API key before enabling shell tracing so it can never appear in
+  # debug output. The value is not referenced again in this script.
+  if [[ -z "$API_KEY" ]]; then
+    error "API_KEY environment variable is not set"
+  fi
+
+  if is_true "${DEBUG_LOGGING:-false}"; then
+    set -x
+  fi
+
+  # Check the remaining required configuration.
+  if [[ -z "$BEASTHOST" ]]; then
+    error "BEASTHOST environment variable is not set"
+  fi
+
+  # Validate the ports consumed by the services and health check.
+  if ! is_valid_port "$BEASTPORT"; then
+    error "BEASTPORT must be an integer between 1 and 65535"
+  fi
+  if ! is_valid_port "$MLATSERVERPORT"; then
+    error "MLATSERVERPORT must be an integer between 1 and 65535"
+  fi
+  if ! is_true "${PW_NOMETRICS:-false}" && ! is_valid_port "$PW_METRICSPORT"; then
+    error "PW_METRICSPORT must be an integer between 1 and 65535"
+  fi
+
+  if ! is_true "$ENABLE_MLAT" && ! is_false "$ENABLE_MLAT"; then
+    error "ENABLE_MLAT must be either true or false"
+  fi
+  if ! is_true "$PW_NOMETRICS" && ! is_false "$PW_NOMETRICS"; then
+    error "PW_NOMETRICS must be either true or false"
+  fi
+
+  # Missing coordinates disable MLAT without preventing ADS-B feeding.
+  if is_true "$ENABLE_MLAT"; then
+    MISSING_MLAT_VARIABLES=()
+    [[ -n "$LAT" ]] || MISSING_MLAT_VARIABLES+=(LAT)
+    [[ -n "$LONG" ]] || MISSING_MLAT_VARIABLES+=(LONG)
+    [[ -n "$ALT" ]] || MISSING_MLAT_VARIABLES+=(ALT)
+    if (( ${#MISSING_MLAT_VARIABLES[@]} > 0 )); then
+      MISSING_MLAT_TEXT=$(IFS=,; printf '%s' "${MISSING_MLAT_VARIABLES[*]}")
+      warning "MLAT will remain disabled because these variables are missing: $MISSING_MLAT_TEXT"
+    fi
+  fi
+
+  # If any errors above are fatal, don't proceed starting the container
+  if (( EXITCODE != 0 )); then
+    exit "$EXITCODE"
+  fi
+
+  printf '[init] Image revision: %s\n' "$IMAGE_REVISION"
+  printf '[init] Completed\n'
+
   exit "$EXITCODE"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
 fi
-
-printf '[init] Image revision: %s\n' "$IMAGE_REVISION"
-printf '[init] Completed\n'
-
-exit "$EXITCODE"

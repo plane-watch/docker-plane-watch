@@ -17,6 +17,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v7
+      - name: Run initialisation regression tests
+        shell: bash
+        run: ./tests/initialise.sh
       - name: Run healthcheck regression tests
         shell: bash
         run: ./tests/healthcheck.sh
