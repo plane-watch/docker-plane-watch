@@ -250,13 +250,14 @@ RUN \
     cat /PW_FEEDER_VERSION
 ARG IMAGE_REVISION=unknown
 ARG IMAGE_VERSION=dev
+ENV IMAGE_REVISION="${IMAGE_REVISION}"
 LABEL org.opencontainers.image.title="Plane Watch feeder" \
       org.opencontainers.image.description="Feeds ADS-B and MLAT data to Plane Watch" \
       org.opencontainers.image.source="https://github.com/plane-watch/docker-plane-watch" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
       org.opencontainers.image.version="${IMAGE_VERSION}"
 ENTRYPOINT ["/init"]
-HEALTHCHECK --interval=300s --timeout=15s --start-period=60s --retries=3 CMD ["bash", "/scripts/healthcheck.sh"]
+HEALTHCHECK --interval=60s --timeout=15s --start-period=60s --start-interval=5s --retries=3 CMD ["bash", "/scripts/healthcheck.sh"]
 
 # Expose metrics port
 EXPOSE 2112

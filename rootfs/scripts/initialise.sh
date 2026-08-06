@@ -16,6 +16,7 @@ ALT="${ALT:-}"
 MLATSERVERPORT="${MLATSERVERPORT:-12346}"
 PW_METRICSPORT="${PW_METRICSPORT:-2112}"
 PW_NOMETRICS="${PW_NOMETRICS:-false}"
+IMAGE_REVISION="${IMAGE_REVISION:-unknown}"
 
 TZ="${TZ//$'\r'/}"
 BEASTHOST="${BEASTHOST//$'\r'/}"
@@ -28,6 +29,7 @@ ALT="${ALT//$'\r'/}"
 MLATSERVERPORT="${MLATSERVERPORT//$'\r'/}"
 PW_METRICSPORT="${PW_METRICSPORT//$'\r'/}"
 PW_NOMETRICS="${PW_NOMETRICS//$'\r'/}"
+IMAGE_REVISION="${IMAGE_REVISION//$'\r'/}"
 
 is_true() {
   [[ "$1" =~ ^[Tt][Rr][Uu][Ee]$ ]]
@@ -112,6 +114,7 @@ if (( EXITCODE != 0 )); then
   exit "$EXITCODE"
 fi
 
+printf '[init] Image revision: %s\n' "$IMAGE_REVISION"
 printf '[init] Completed\n'
 
 exit "$EXITCODE"
