@@ -1,4 +1,4 @@
-FROM golang:1.26-bookworm AS pw_feeder_builder
+FROM golang:1.27-bookworm AS pw_feeder_builder
 
 ARG PW_FEEDER_BRANCH
 
@@ -96,4 +96,4 @@ COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 
-HEALTHCHECK --interval=300s --timeout=15s --start-period=60s --retries=3 CMD bash /scripts/healthcheck.sh
+HEALTHCHECK --interval=300s --timeout=15s --start-period=60s --retries=3 CMD ["bash", "/scripts/healthcheck.sh"]
