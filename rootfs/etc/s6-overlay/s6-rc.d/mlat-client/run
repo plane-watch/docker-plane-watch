@@ -1,4 +1,4 @@
 #!/command/with-contenv bash
-#shellcheck shell=bash
+# shellcheck shell=bash
 
-exec /scripts/mlat-client.sh
+exec s6-setuidgid nobody /scripts/mlat-client.sh

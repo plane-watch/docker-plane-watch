@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly command_name="${0##*/}"
+
+require_variable() {
+    local variable_name="$1"
+
+    if [[ -z "${!variable_name:-}" ]]; then
+        printf '%s: %s must be set\n' "${command_name}" "${variable_name}" >&2
+        exit 2
+    fi
+}
+
+viewadsb_args=(
+    --net-bind-address="127.0.0.1"
+    --net-bo-port="30105"
+)
+
+if [[ -n "${LAT:-}" || -n "${LONG:-}" ]]; then
+    require_variable LAT
+    require_variable LONG
+    viewadsb_args+=(--lat="${LAT}" --lon="${LONG}")
+fi
+
+exec viewadsb "${viewadsb_args[@]}" "$@"

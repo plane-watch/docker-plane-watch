@@ -1,0 +1,33 @@
+---
+name: Linting (GitHub Actions)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/scripts/**/*.sh'
+      - '.github/workflows/**/*.yml'
+      - '.github/workflows/**/*.yaml'
+      - 'tests/sanitize-issue.sh'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Run actionlint against workflow files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test issue sanitization
+        run: tests/sanitize-issue.sh
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color

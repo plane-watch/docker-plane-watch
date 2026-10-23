@@ -1,6 +1,5 @@
-.git
-.gitignore
-.github
-.gitattributes
-READMETEMPLATE.md
-README.md
+# The image only copies rootfs/ from the build context.
+**
+!Dockerfile
+!rootfs/
+!rootfs/**

@@ -16,16 +16,172 @@ on:
       - '**.md'
       - '**.MD'
       - '**.yml'
+      - '**.yaml'
       - 'LICENSE'
       - '.gitattributes'
       - '.gitignore'
       - '.dockerignore'
 
-jobs:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-  docker:
+permissions:
+  contents: read
+  packages: write
+
+env:
+  GHCR_IMAGE: ghcr.io/plane-watch/docker-plane-watch
+  DOCKERHUB_IMAGE: planewatch/plane-watch
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      mlat_client_ref: ${{ steps.source_refs.outputs.mlat_client_ref }}
+      pw_feeder_ref: ${{ steps.source_refs.outputs.pw_feeder_ref }}
+      pw_feeder_version: ${{ steps.source_refs.outputs.pw_feeder_version }}
+      readsb_ref: ${{ steps.source_refs.outputs.readsb_ref }}
+    steps:
+      - name: Resolve upstream source revisions
+        id: source_refs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          resolve_ref() {
+            local repository="$1"
+            local ref="$2"
+            local sha
+
+            sha="$(git ls-remote "${repository}" "${ref}^{}" | awk 'NR == 1 { print $1 }')"
+            if [[ -z "${sha}" ]]; then
+              sha="$(git ls-remote "${repository}" "${ref}" | awk 'NR == 1 { print $1 }')"
+            fi
+            if [[ ! "${sha}" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Could not resolve ${repository} ${ref}" >&2
+              return 1
+            fi
+            printf '%s\n' "${sha}"
+          }
+
+          READSB_REPOSITORY=https://github.com/mictronics/readsb-protobuf.git
+          PW_FEEDER_REPOSITORY=https://github.com/plane-watch/pw-feeder.git
+          MLAT_CLIENT_REPOSITORY=https://github.com/wiedehopf/mlat-client.git
+
+          READSB_TAG="$(
+            git ls-remote --refs --tags --sort=-version:refname "${READSB_REPOSITORY}" |
+              awk 'NR == 1 { sub("refs/tags/", "", $2); print $2 }'
+          )"
+          PW_FEEDER_VERSION="$(curl \
+            --fail \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --location \
+            --silent \
+            --show-error \
+            https://api.github.com/repos/plane-watch/pw-feeder/releases/latest | jq -r .tag_name)"
+          if [[ -z "${READSB_TAG}" ]]; then
+            echo "Could not resolve the latest readsb-protobuf tag" >&2
+            exit 1
+          fi
+          if [[ -z "${PW_FEEDER_VERSION}" || "${PW_FEEDER_VERSION}" == null ]]; then
+            echo "Could not resolve the latest pw-feeder release" >&2
+            exit 1
+          fi
+
+          {
+            echo "readsb_ref=$(resolve_ref "${READSB_REPOSITORY}" "refs/tags/${READSB_TAG}")"
+            echo "pw_feeder_ref=$(resolve_ref "${PW_FEEDER_REPOSITORY}" "refs/tags/${PW_FEEDER_VERSION}")"
+            echo "pw_feeder_version=${PW_FEEDER_VERSION}"
+            echo "mlat_client_ref=$(resolve_ref "${MLAT_CLIENT_REPOSITORY}" HEAD)"
+          } >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build ${{ matrix.platform }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            cache_scope: amd64
+            qemu_platform: ''
+          - platform: linux/arm64
+            cache_scope: arm64
+            qemu_platform: arm64
+          - platform: linux/arm/v7
+            cache_scope: armv7
+            qemu_platform: arm
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        if: ${{ matrix.qemu_platform != '' }}
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: ${{ matrix.qemu_platform }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push ${{ matrix.platform }} by digest
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            READSB_PROTOBUF_REF=${{ needs.prepare.outputs.readsb_ref }}
+            PW_FEEDER_REF=${{ needs.prepare.outputs.pw_feeder_ref }}
+            PW_FEEDER_VERSION=${{ needs.prepare.outputs.pw_feeder_version }}
+            MLAT_CLIENT_REF=${{ needs.prepare.outputs.mlat_client_ref }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_VERSION=${{ needs.prepare.outputs.pw_feeder_version }}
+          cache-from: type=gha,scope=plane-watch-${{ matrix.cache_scope }}
+          cache-to: type=gha,scope=plane-watch-${{ matrix.cache_scope }},mode=max
+          tags: |
+            ${{ env.GHCR_IMAGE }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export image digest
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${IMAGE_DIGEST#sha256:}"
+
+      - name: Upload image digest
+        uses: actions/upload-artifact@v7
+        with:
+          name: digest-${{ matrix.cache_scope }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish multi-platform image
+    needs:
+      - prepare
+      - build
     runs-on: ubuntu-latest
     steps:
+      - name: Download image digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: digest-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
+
       - name: Login to GHCR
         uses: docker/login-action@v4.6.0
         with:
@@ -39,54 +195,48 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Get latest tag from pw-feeder
-        id: latest_tag
+      - name: Create GHCR manifest list
+        shell: bash
+        env:
+          IMAGE_VERSION: ${{ needs.prepare.outputs.pw_feeder_version }}
         run: |
-          REPO_OWNER="plane-watch" # Replace with the owner of the other repo
-          REPO_NAME="pw-feeder"   # Replace with the name of the other repo
-          LATEST_RELEASE_TAG=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | jq -r .tag_name)
-          echo "latest_tag_name=$LATEST_RELEASE_TAG" >> $GITHUB_OUTPUT
+          set -euo pipefail
 
-      - name: Build linux/amd64
-        uses: docker/build-push-action@v7
-        with:
-          platforms: linux/amd64
-          push: false
-          cache-to: type=local,dest=/tmp/buildcache
+          mapfile -t DIGEST_FILES < <(find "${RUNNER_TEMP}/digests" -maxdepth 1 -type f -print | sort)
+          if [[ "${#DIGEST_FILES[@]}" -ne 3 ]]; then
+            echo "Expected 3 image digests, found ${#DIGEST_FILES[@]}" >&2
+            exit 1
+          fi
 
-      - name: Build linux/arm64
-        uses: docker/build-push-action@v7
-        with:
-          platforms: linux/arm64
-          push: false
-          cache-to: type=local,dest=/tmp/buildcache
+          IMAGES=()
+          for DIGEST_FILE in "${DIGEST_FILES[@]}"; do
+            IMAGES+=("${GHCR_IMAGE}@sha256:$(basename "${DIGEST_FILE}")")
+          done
 
-      - name: Build linux/arm/v7
-        uses: docker/build-push-action@v7
-        with:
-          platforms: linux/arm/v7
-          push: false
-          cache-to: type=local,dest=/tmp/buildcache
+          docker buildx imagetools create \
+            --tag "${GHCR_IMAGE}:latest" \
+            --tag "${GHCR_IMAGE}:${IMAGE_VERSION}" \
+            "${IMAGES[@]}"
 
+      - name: Copy image to DockerHub
+        shell: bash
+        env:
+          IMAGE_VERSION: ${{ needs.prepare.outputs.pw_feeder_version }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools create \
+            --tag "${DOCKERHUB_IMAGE}:latest" \
+            --tag "${DOCKERHUB_IMAGE}:${IMAGE_VERSION}" \
+            "${GHCR_IMAGE}:${IMAGE_VERSION}"
 
-      - name: Build and push to GHCR
-        uses: docker/build-push-action@v7
-        with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          push: true
-          cache-from: type=local,src=/tmp/buildcache
-          tags: ghcr.io/plane-watch/docker-plane-watch:latest,ghcr.io/plane-watch/docker-plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
-
-      - name: Build and push to DockerHub
-        uses: docker/build-push-action@v7
-        with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          push: true
-          cache-from: type=local,src=/tmp/buildcache
-          tags: planewatch/plane-watch:latest,planewatch/plane-watch:${{ steps.latest_tag.outputs.latest_tag_name }}
+      - name: Inspect published images
+        shell: bash
+        env:
+          IMAGE_VERSION: ${{ needs.prepare.outputs.pw_feeder_version }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "${GHCR_IMAGE}:${IMAGE_VERSION}"
+          docker buildx imagetools inspect "${DOCKERHUB_IMAGE}:${IMAGE_VERSION}"
