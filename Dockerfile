@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM debian:bookworm@sha256:813017f3d62be4b5891a7acca6a01bdcd4b8513daa81b1ab99d3a50385b26931 AS debian_base
+FROM debian:bookworm@sha256:854dd8ab51d62866dbd8f5431d15ce77b12983a2a4a1e1fe43a2395dc7ef9f61 AS debian_base
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
 
 
@@ -50,7 +50,7 @@ RUN --mount=type=cache,id=readsb-src-${TARGETARCH}${TARGETVARIANT},target=/src/r
     /usr/local/bin/viewadsb --help
 
 
-FROM golang:1.26-bookworm@sha256:6c5605ab3a9a9fb3c4eafe5b3d63cdbf3881caf113262b67862547b54a9db599 AS pw_feeder_builder
+FROM golang:1.27-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5 AS pw_feeder_builder
 ARG PW_FEEDER_BRANCH
 ARG PW_FEEDER_REF=fac8bcc8959f3c53e29ce5ec8c80a87f458e63ed
 ARG PW_FEEDER_VERSION=v0.0.11
