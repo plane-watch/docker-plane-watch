@@ -50,7 +50,7 @@ RUN --mount=type=cache,id=readsb-src-${TARGETARCH}${TARGETVARIANT},target=/src/r
     /usr/local/bin/viewadsb --help
 
 
-FROM golang:1.27-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0 AS pw_feeder_builder
+FROM golang:1.27-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea AS pw_feeder_builder
 ARG PW_FEEDER_BRANCH
 ARG PW_FEEDER_REF=fac8bcc8959f3c53e29ce5ec8c80a87f458e63ed
 ARG PW_FEEDER_VERSION=v0.0.11
